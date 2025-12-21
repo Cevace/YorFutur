@@ -1,0 +1,4 @@
+Add to .env.local:
+MISTRAL_API_KEY=your_mistral_api_key_here
+
+Get your API key from: https://console.mistral.ai/

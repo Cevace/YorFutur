@@ -1,0 +1,88 @@
+title: Veelgestelde Vragen
+content:
+  - discriminant: hero
+    value:
+      headline: Veelgestelde Vragen
+      subheadline: Alles wat je moet weten over Cevace en onze diensten.
+      ctaText: Start Nu
+      ctaLink: /login
+  - discriminant: faq
+    value:
+      headline: Cevase Pakketten
+      items:
+        - question: Wat is de beste eerstvolgende stap?
+          answer: >-
+            Start Gratis en probeer alle tools uit het Premium pakket voor 7
+            dagen.  Daarna beslis je wat je wilt blijven gebruiken en kies je
+            het pakket dat het beste bij je past.
+        - question: Kan ik pauzeren of opzeggen?
+          answer: >-
+            Ja. Maandelijks opzegbaar. Pauzeren kan per maand. Je behoudt
+            toegang tot je documenten en de basisbibliotheek.
+        - question: Wat kost het?
+          answer: >-
+            Gratis voor de start en 7 dagen alles testen. Core kost 9 euro per
+            maand met de Live-CV. Pro vanaf 19 euro per maand. Premium vanaf 49
+            euro per maand. Zie de tabel voor exacte verschillen.
+  - discriminant: faq
+    value:
+      headline: Algemeen & Functionaliteit
+      items:
+        - question: Waarom zou ik Cevace gebruiken in plaats van alles zelf doen?
+          answer: >-
+            Omdat je anders blijft optimaliseren op gevoel. Wij koppelen je cv,
+            brief en LinkedIn aan echte vacature-eisen en ATS-logica. Je krijgt
+            scherpe feedback, templates die bewezen werken en een ritme dat je
+            dwingt tot actie. Resultaat: meer relevante reacties en sneller
+            gesprekken.
+        - question: Wat levert Cevace concreet op?
+          answer: >-
+            Een CV dat door ATS heen komt, een brief die context en bewijs
+            levert, een LinkedIn-profiel dat gevonden wordt en interview
+            antwoorden die landen. Plus structuur: wekelijkse doelen, check-ins
+            en duidelijke next steps.
+        - question: Hoe snel zie ik effect?
+          answer: >-
+            Vaak binnen 1 tot 3 weken: meer profielbezoeken, meer opens en
+            eerste gesprekken. Het tempo hangt af van je startniveau, het aantal
+            gerichte sollicitaties per week en hoe snel je iteraties doorvoert.
+        - question: Ik heb weinig tijd. Werkt dit naast een fulltime baan?
+          answer: >-
+            Ja. We werken in korte sprints. Jij levert input in blokken van 30
+            tot 60 minuten. Reviews en optimalisaties komen asynchroon terug met
+            concrete edits en voorbeelden.
+        - question: Wat maakt jullie anders dan algemene carrièrecoaches of cursussen?
+          answer: >-
+            Wij combineren menselijke coaching en reviews met AI die is getraind
+            op vacatureteksten, trefwoorden en ATS-criteria. Geen statische
+            cursus, maar iteraties op jouw echte sollicitaties, per sector en
+            land.
+        - question: Helpt Cevace ook bij een carrièreswitch of 45+ profielen?
+          answer: >-
+            Ja. We herpositioneren je ervaring met skills, impact en bewijs.
+            Voor 45+ leggen we nadruk op resultaat, recente bijscholing en
+            actuele tooling. Voor switchers bouwen we een storybank die de brug
+            slaat.
+        - question: Werkt Cevace voor meerdere Europese landen en talen?
+          answer: >-
+            Ja. We passen toon, structuur en bewijsvoering aan per land. Denk
+            aan Nederland, Duitsland, België, Frankrijk en de Nordics. Engels,
+            Nederlands en Duits zijn standaard. Andere talen in Plus.
+        - question: Hoe werkt de gratis start?
+          answer: >-
+            Je krijgt 7 dagen toegang tot alle functionaliteiten van het Premium
+            platform.
+        - question: Krijg ik garanties op een baan?
+          answer: >-
+            Een baan kan niemand garanderen. Wel garanderen we scherpe feedback,
+            snellere iteraties en een proces dat je kansen aantoonbaar vergroot.
+            Jij levert inzet, wij leveren structuur en expertise.
+        - question: >-
+            Kan Yorfutur mijn cv en brieven ook in het Engels of Duits
+            schrijven?
+          answer: Ja. We leveren en redigeren in het Engels, Nederlands en Duits.
+        - question: Wat verwachten jullie van mij?
+          answer: >-
+            Eerlijke input, snelle beantwoording van vragen en het verzenden van
+            5 tot 10 gerichte sollicitaties per iteratie. Geen massaspreiding,
+            wel focus.

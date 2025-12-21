@@ -1,0 +1,16 @@
+slug: professional
+name: Professional
+description: De complete toolkit voor serieuze sollicitanten
+price: € 29
+priceYearly: € 26
+period: / maand
+features:
+  - Onbeperkt Assessments
+  - AI CV & LinkedIn Tuner
+  - Persoonlijke Gap-Analysis
+  - Priority Support
+  - ATS-Check
+highlight: true
+buttonText: Start 7 dagen gratis
+buttonLink: /login
+order: 2

@@ -1,0 +1,18 @@
+sections:
+  - type: hero
+    enabled: true
+  - type: features
+    enabled: true
+    sectionTitle: Tools of the Trade.
+  - type: testimonials
+    enabled: true
+    sectionTitle: Join the Elite.
+  - type: blog
+    enabled: true
+    sectionTitle: Tips en informatie om die baan te landen
+  - type: faq
+    enabled: true
+    sectionTitle: Veelgestelde Vragen
+  - type: pricing
+    enabled: true
+    sectionTitle: Invester nu in je toekomst

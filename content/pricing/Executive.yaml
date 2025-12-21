@@ -1,0 +1,15 @@
+slug: executive
+name: Executive
+description: Persoonlijke begeleiding van experts
+price: € 59
+priceYearly: € 53
+period: / maand
+features:
+  - Alles in Career Pro (1 jaar)
+  - 1u Live Interview Training
+  - CV Review door Expert
+  - Directe WhatsApp Support
+highlight: false
+buttonText: Start 7 dagen gratis
+buttonLink: /login
+order: 3

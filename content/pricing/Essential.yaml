@@ -1,0 +1,14 @@
+slug: essential
+name: Free
+description: Perfect om te starten met Cevace
+price: '0'
+priceYearly: '0'
+period: / 7 dagen
+features:
+  - 1 Assessment Module
+  - Basic Profiel
+  - Community Toegang
+highlight: false
+buttonText: Start 7 dagen gratis
+buttonLink: /login
+order: 1

@@ -1,0 +1,59 @@
+title: premium-cv-landing
+content:
+  - discriminant: hero
+    value:
+      headline: Jouw CV die recruiters niet kunnen negeren
+      subheadline: AI-gestuurde CV-optimalisatie met gegarandeerde ATS-score van 85+
+      ctaText: Start gratis proefperiode
+      ctaLink: /dashboard/signup
+  - discriminant: stats
+    value:
+      stats:
+        - value: '92%'
+          label: Hogere respons van recruiters
+        - value: '3x'
+          label: Meer uitnodigingen voor gesprekken
+        - value: '10k+'
+          label: Tevreden gebruikers
+  - discriminant: pricing
+    value:
+      headline: Kies jouw pakket
+      packages:
+        - name: Basis
+          price: €0
+          priceSuffix: voor altijd
+          description: Perfect om te starten met je sollicitatiereis
+          features:
+            - 1 CV opslaan
+            - Basis ATS-scan
+            - PDF export
+          highlight: false
+        - name: Premium
+          price: €9,99
+          priceSuffix: per maand
+          description: Voor serieuze sollicitanten die de beste kansen willen
+          features:
+            - Onbeperkt CV's
+            - AI CV-optimalisatie
+            - Motivatiebrief generator
+            - ATS-scoregarantie 85+
+            - Live CV met QR-code
+            - Prioriteit support
+          highlight: true
+        - name: Pro
+          price: €19,99
+          priceSuffix: per maand
+          description: Ultieme pakket voor carrière professionals
+          features:
+            - Alles van Premium
+            - 1-op-1 carrière coaching
+            - LinkedIn optimalisatie
+            - Interview voorbereiding
+            - Salaris onderhandeling tips
+          highlight: false
+  - discriminant: callToAction
+    value:
+      headline: Klaar om je droombaan te vinden?
+      subheadline: Probeer Cevace Premium 14 dagen gratis, zonder creditcard
+      appleLink: '#'
+      googleLink: '#'

@@ -1,0 +1,156 @@
+/* Custom styling for Keystatic DocumentRenderer output */
+
+/* Headings */
+[data-keystatic-component] h1,
+[data-keystatic-component] h2,
+[data-keystatic-component] h3,
+[data-keystatic-component] h4,
+[data-keystatic-component] h5,
+[data-keystatic-component] h6 {
+    color: #000000;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+}
+
+[data-keystatic-component] h1 {
+    font-size: 2.25rem;
+}
+
+[data-keystatic-component] h2 {
+    font-size: 1.875rem;
+}
+
+[data-keystatic-component] h3 {
+    font-size: 1.5rem;
+}
+
+[data-keystatic-component] h4 {
+    font-size: 1.25rem;
+}
+
+/* Paragraphs */
+[data-keystatic-component] p {
+    color: #374151;
+    line-height: 1.75;
+    margin-bottom: 1.25rem;
+}
+
+/* Links */
+[data-keystatic-component] a {
+    color: #ea580c;
+    /* cevace-orange */
+    text-decoration: none;
+}
+
+[data-keystatic-component] a:hover {
+    text-decoration: underline;
+}
+
+/* Strong/Bold */
+[data-keystatic-component] strong {
+    color: #111827;
+    font-weight: 700;
+}
+
+/* Emphasis/Italic */
+[data-keystatic-component] em {
+    font-style: italic;
+}
+
+/* Lists */
+[data-keystatic-component] ul,
+[data-keystatic-component] ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+[data-keystatic-component] ul {
+    list-style-type: disc;
+}
+
+[data-keystatic-component] ol {
+    list-style-type: decimal;
+}
+
+[data-keystatic-component] li {
+    color: #374151;
+    margin-bottom: 0.5rem;
+    line-height: 1.75;
+}
+
+/* Blockquotes */
+[data-keystatic-component] blockquote {
+    border-left: 4px solid #ea580c;
+    /* cevace-orange */
+    padding-left: 1rem;
+    font-style: italic;
+    color: #6b7280;
+    margin: 1.5rem 0;
+}
+
+/* Code */
+[data-keystatic-component] code {
+    background-color: #f3f4f6;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875em;
+}
+
+[data-keystatic-component] pre {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+[data-keystatic-component] pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* Images */
+[data-keystatic-component] img {
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    height: auto;
+    margin: 1.5rem 0;
+}
+
+/* Horizontal rules */
+[data-keystatic-component] hr {
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+    margin: 2rem 0;
+}
+
+/* Tables */
+[data-keystatic-component] table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+
+[data-keystatic-component] th,
+[data-keystatic-component] td {
+    border: 1px solid #e5e7eb;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+[data-keystatic-component] th {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* First paragraph larger */
+[data-keystatic-component]>p:first-of-type {
+    font-size: 1.125rem;
+    color: #1f2937;
+}

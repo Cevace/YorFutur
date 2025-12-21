@@ -1,0 +1,10 @@
+title: prijzen
+content:
+  - discriminant: pricing
+    value:
+      headline: Prijzen
+      packages:
+        - name: Gratis
+          description: Probeer Cevace gratis
+          features: []
+          highlight: false
