@@ -3,18 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import NextLink from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import {
     ArrowRight, Check, Star,
     Linkedin, Brain, Target, Users, Play,
-    Sparkles, Quote, Calendar,
+    Sparkles, Calendar,
     Instagram, Facebook, Twitter, Mail, Menu, X,
     ChevronDown
 } from 'lucide-react';
 import SwarmBackground from '@/components/SwarmBackground';
-import { PricingTable } from '@/components/pricing';
-import { getAllPlans } from '@/lib/pricing/plans';
-import { Plan, BillingCycle } from '@/lib/pricing/types';
 
 // --- TYPES ---
 interface BlogPost {
@@ -97,7 +93,6 @@ interface HomePageClientProps {
     faqSections: FAQSection[];
     heroData: HeroData;
     testimonials: Testimonial[];
-    pricingCards: PricingCardData[];
     features: FeatureData[];
     layout: SectionConfig[];
     companyLogos: string[];
@@ -105,81 +100,7 @@ interface HomePageClientProps {
 }
 
 // --- STYLES & ANIMATIONS ---
-const Styles = () => (
-    <style dangerouslySetInnerHTML={{
-        __html: `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Spectral:ital,wght@0,400;1,400&display=swap');
-    
-    :root {
-      --font-inter: 'Inter', sans-serif;
-      --color-navy: #22223B;
-      --color-orange: #d97706;
-    }
 
-    /* ANIMATIONS */
-    @keyframes drift {
-      0% { transform: translate(0, 0); }
-      50% { transform: translate(20px, -20px); }
-      100% { transform: translate(0, 0); }
-    }
-    @keyframes marquee {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    @keyframes float-card {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    @keyframes scroll-x {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(calc(-400px * 7 - 1.5rem * 7)); } 
-    }
-
-    .animate-drift {
-      animation: drift 20s ease-in-out infinite;
-    }
-    .animate-marquee {
-      animation: marquee 40s linear infinite;
-    }
-    .animate-float {
-      animation: float-card 4s ease-in-out infinite;
-    }
-
-    /* GLASSMORPHISM CLASSES */
-    .glass-premium {
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    }
-    .glass-light {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-    }
-    
-    /* UTILS */
-    .text-gradient-gold {
-      background: linear-gradient(135deg, #d97706 0%, #fbbf24 50%, #d97706 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .noise-bg {
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-    }
-    .animate-scroll-blog {
-      animation: scroll-x 60s linear infinite;
-    }
-    .animate-scroll-blog:hover {
-      animation-play-state: paused;
-    }
-    
-    /* SHAPES */
-    .btn-pill { border-radius: 9999px; }
-  `}} />
-);
 
 // --- DATA ---
 const FOOTER_LINKS = {
@@ -341,52 +262,31 @@ const iconMap: Record<string, React.ElementType> = {
     sparkles: Sparkles,
 };
 
-const FeaturesSection = ({ features, title, quoteData }: { features: FeatureData[]; title: string; quoteData: QuoteData }) => (
-    <section id="methode" className="py-32 bg-[#F2E9E4] relative">
+const FeaturesSection = ({ features, title }: { features: FeatureData[]; title: string }) => (
+    <section id="methode" className="py-24 bg-[#F2E9E4] relative">
         <div className="max-w-7xl mx-auto px-6">
-            <div className="mb-20">
+            <div className="mb-12">
                 <div className="h-1 w-16 bg-[#C9ADA7] mb-6 rounded-full"></div>
-                <h2 className="text-5xl font-semibold text-[#22223B] mb-6">{title || 'Tools of the Trade.'}</h2>
+                <h2 style={{ fontSize: '20px', lineHeight: '1.3' }} className="font-semibold text-[#22223B]">{title || 'Tools of the Trade.'}</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                <div className="space-y-16">
-                    {features.map((f, i) => {
-                        const IconComponent = iconMap[f.icon] || Brain;
-                        return (
-                            <div key={i} className="flex gap-8 group cursor-pointer">
-                                <div className="w-16 h-16 bg-white border border-[#C9ADA7] rounded-[1.5rem] flex items-center justify-center shrink-0 group-hover:border-[#d97706] transition-all duration-300 group-hover:scale-110 shadow-sm">
-                                    <IconComponent size={28} className="text-[#22223B] group-hover:text-[#d97706] transition-colors" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-semibold text-[#22223B] mb-2 group-hover:text-[#d97706] transition-colors">
-                                        {f.title.replace(/-/g, ' ')}
-                                    </h3>
-                                    <p className="text-[#4A4E69] leading-relaxed text-lg">{f.description}</p>
-                                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {features.map((f, i) => {
+                    const IconComponent = iconMap[f.icon] || Brain;
+                    return (
+                        <div key={i} className="flex gap-5 group cursor-pointer">
+                            <div className="w-12 h-12 bg-white border border-[#C9ADA7] rounded-xl flex items-center justify-center shrink-0 group-hover:border-[#d97706] transition-all duration-300 group-hover:scale-110 shadow-sm">
+                                <IconComponent size={22} className="text-[#22223B] group-hover:text-[#d97706] transition-colors" />
                             </div>
-                        );
-                    })}
-                </div>
-
-                <div className="relative h-full min-h-[400px]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#d97706] to-[#22223B] rounded-[2.5rem] transform rotate-3 opacity-10"></div>
-                    <div className="relative bg-white p-12 shadow-2xl border border-[#C9ADA7]/20 h-full flex flex-col justify-center items-center text-center rounded-[20px]">
-                        <Quote size={48} className="text-[#d97706] mb-8 opacity-40" />
-                        <p className="text-2xl md:text-3xl text-[#22223B] leading-relaxed mb-8" style={{ fontFamily: "'Spectral', serif" }}>
-                            &ldquo;{quoteData.text}&rdquo;
-                        </p>
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden">
-                                <img src={quoteData.photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150'} alt={quoteData.author} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="text-left">
-                                <div className="text-sm font-semibold uppercase tracking-widest text-[#22223B]">{quoteData.author}</div>
-                                <div className="text-xs text-[#d97706] font-semibold">{quoteData.role}</div>
+                            <div>
+                                <h3 style={{ fontSize: '20px', lineHeight: '1.3' }} className="font-semibold text-[#22223B] mb-1 group-hover:text-[#d97706] transition-colors">
+                                    {f.title.replace(/-/g, ' ')}
+                                </h3>
+                                <p style={{ fontSize: '16px', lineHeight: '1.4' }} className="text-[#4A4E69]">{f.description}</p>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    );
+                })}
             </div>
         </div>
     </section>
@@ -570,39 +470,8 @@ const PricingCardComponent = ({ tier, description, price, period, features, feat
     </div>
 );
 
-const PricingSection = ({ title }: { cards?: PricingCardData[]; title: string }) => {
-    const router = useRouter();
-    const plans = getAllPlans();
-
-    const handleSelectPlan = (plan: Plan, billingCycle: BillingCycle) => {
-        if (plan.name === 'free') {
-            router.push('/dashboard');
-            return;
-        }
-        router.push(`/pricing?plan=${plan.name}&cycle=${billingCycle}`);
-    };
-
-    return (
-        <section id="membership" className="py-32 bg-[#22223B] relative overflow-hidden">
-            <div className="absolute inset-0 noise-bg opacity-30"></div>
-            <SwarmBackground position="center" intensity="intense" />
-
-            <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="text-center mb-16">
-                    <h2 className="text-5xl font-semibold text-white mb-4 tracking-tight">{title || 'Investeer in je toekomst'}</h2>
-                    <p className="text-xl text-[#C9ADA7] max-w-2xl mx-auto">
-                        Kies het plan dat bij jou past. Alle plannen starten met een <strong>7-daagse gratis</strong> Executive proefperiode.
-                    </p>
-                </div>
-
-                <PricingTable
-                    plans={plans}
-                    onSelectPlan={handleSelectPlan}
-                />
-            </div>
-        </section>
-    );
-};
+// PricingSection temporarily removed - causing Next.js bundling issues
+// Users can access pricing via /pricing page
 
 const Footer = () => (
     <footer className="text-white py-20 border-t border-white/5" style={{ backgroundColor: '#22223B' }}>
@@ -664,7 +533,7 @@ const Footer = () => (
     </footer>
 );
 
-export default function HomePageClient({ blogPosts, faqSections, heroData, testimonials, pricingCards, features, layout, companyLogos, quoteData }: HomePageClientProps) {
+export default function HomePageClient({ blogPosts, faqSections, heroData, testimonials, features, layout, companyLogos, quoteData }: HomePageClientProps) {
     const renderSection = (section: SectionConfig) => {
         if (!section.enabled) return null;
 
@@ -672,7 +541,7 @@ export default function HomePageClient({ blogPosts, faqSections, heroData, testi
             case 'hero':
                 return <Hero key="hero" data={heroData} />;
             case 'features':
-                return <FeaturesSection key="features" features={features} title={section.sectionTitle} quoteData={quoteData} />;
+                return <FeaturesSection key="features" features={features} title={section.sectionTitle} />;
             case 'testimonials':
                 return <SocialProof key="testimonials" testimonials={testimonials} title={section.sectionTitle} logos={companyLogos} />;
             case 'blog':
@@ -680,7 +549,8 @@ export default function HomePageClient({ blogPosts, faqSections, heroData, testi
             case 'faq':
                 return <FAQAccordion key="faq" sections={faqSections} />;
             case 'pricing':
-                return <PricingSection key="pricing" cards={pricingCards} title={section.sectionTitle} />;
+                // Pricing section temporarily disabled to fix build errors
+                return null;
             default:
                 return null;
         }
@@ -688,7 +558,6 @@ export default function HomePageClient({ blogPosts, faqSections, heroData, testi
 
     return (
         <div className="min-h-screen bg-[#22223B] font-sans selection:bg-[#d97706] selection:text-white overflow-x-hidden">
-            <Styles />
             {layout.map((section, index) => (
                 <React.Fragment key={`${section.type}-${index}`}>
                     {renderSection(section)}
