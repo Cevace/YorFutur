@@ -47,7 +47,7 @@ function extractHeadings(content: string): { id: string; text: string; level: nu
 }
 
 export async function generateStaticParams() {
-    const posts = getPublishedBlogPosts();
+    const posts = await getPublishedBlogPosts();
     return posts.map((post) => ({
         slug: post.slug,
     }));
@@ -57,7 +57,7 @@ export async function generateStaticParams() {
 export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-    const post = getBlogPostBySlug(params.slug);
+    const post = await getBlogPostBySlug(params.slug);
 
     if (!post) {
         return {
@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-    const post = getBlogPostBySlug(params.slug);
+    const post = await getBlogPostBySlug(params.slug);
 
     if (!post || !post.published) {
         notFound();
@@ -90,7 +90,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
     // Get related posts (same category, exclude current)
-    const allPosts = getPublishedBlogPosts();
+    const allPosts = await getPublishedBlogPosts();
     const relatedPosts = allPosts
         .filter(p => p.category === post.category && p.slug !== post.slug)
         .slice(0, 3);
@@ -194,7 +194,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                     {/* Table of Contents */}
                     {headings.length >= 3 && (
                         <div className="mb-8">
-                            <TableOfContents items={headings} />
+                            <TableOfContents content={post.content} />
                         </div>
                     )}
 

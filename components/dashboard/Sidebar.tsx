@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image'; // Added Image import
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, ScanLine, User, LogOut, Users, Kanban, Target, UserCircle, Sparkles, Upload, Link2, Mic, Brain } from 'lucide-react';
+import { LayoutDashboard, FileText, ScanLine, User, LogOut, Users, Kanban, Target, UserCircle, Sparkles, Upload, Link2, Mic, Brain, Eye, Wand2 } from 'lucide-react';
 import { signOut } from '@/actions/auth';
 
 export default function DashboardSidebar({ userRole, followUpCount }: { userRole: string; followUpCount: number }) {
@@ -37,7 +37,9 @@ export default function DashboardSidebar({ userRole, followUpCount }: { userRole
                 <SidebarLink href="/dashboard/cvs" icon={<FileText size={20} />} label="Mijn CV's" active={isActive('/dashboard/cvs')} />
                 <SidebarLink href="/dashboard/import" icon={<Upload size={20} />} label="CV Import" active={isActive('/dashboard/import')} />
                 <SidebarLink href="/dashboard/tuner" icon={<Sparkles size={20} />} label="CV Tuner" active={isActive('/dashboard/tuner')} />
+                <SidebarLink href="/dashboard/ultimate-cv-builder" icon={<Wand2 size={20} />} label="Ultimate CV Builder" active={isActive('/dashboard/ultimate-cv-builder')} />
                 <SidebarLink href="/dashboard/motivation-letter" icon={<FileText size={20} />} label="Motivatiebrief" active={isActive('/dashboard/motivation-letter')} />
+
                 <SidebarLink href="/dashboard/cv-settings" icon={<Link2 size={20} />} label="Live CV Links" active={isActive('/dashboard/cv-settings')} />
                 <SidebarLink
                     href="/dashboard/tracker"
@@ -63,6 +65,12 @@ export default function DashboardSidebar({ userRole, followUpCount }: { userRole
                     icon={<Brain size={20} />}
                     label="Assessment Trainer"
                     active={isActive('/dashboard/assessment')}
+                />
+                <SidebarLink
+                    href="/dashboard/career-spy"
+                    icon={<Eye size={20} />}
+                    label="Career Spy"
+                    active={isActive('/dashboard/career-spy')}
                 />
 
                 {userRole === 'admin' && (

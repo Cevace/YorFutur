@@ -80,7 +80,7 @@ function ApplicationCard({ application }: { application: any }) {
     }[intelligenceStatus];
 
     const statusColor = {
-        preparation: 'bg-blue-100 text-blue-700',
+        preparation: 'bg-[#EADCD8] text-black',
         applied: 'bg-orange-100 text-orange-700',
         hired: 'bg-green-100 text-green-700',
         rejected: 'bg-red-100 text-red-700',

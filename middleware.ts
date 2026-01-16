@@ -1,15 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { updateSession } from '@/utils/supabase/middleware';
 import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
-    // 1. Update Session and get the response object (which has updated cookies)
-    // We'll modify updateSession to return both response and user, or we parse it here.
-    // Actually, let's just copy the logic effectively or use the response.
-
-    // Better approach: Let's use the standard Supabase Middleware pattern directly here
-    // to ensure we have the user and the correct response with cookies.
-
     let response = NextResponse.next({
         request: {
             headers: request.headers,
@@ -25,7 +17,7 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
                     response = NextResponse.next({
                         request: {
                             headers: request.headers,
@@ -39,38 +31,58 @@ export async function middleware(request: NextRequest) {
         }
     );
 
-    // This refreshes the session if needed
+    // Refresh session
     const { data: { user } } = await supabase.auth.getUser();
 
-    // 2. Define Protected Scope
     const path = request.nextUrl.pathname;
 
-    // Allowed public paths
-    const publicPaths = [
+    // ============================================
+    // PUBLIC PATHS - No auth required
+    // ============================================
+    // Exact matches (static pages)
+    const exactPublicPaths = [
+        '/',
+        '/home',
         '/under-construction',
         '/login',
-        '/auth/callback',
         '/pricing',
-        '/privacy'
+        '/privacy',
+        '/faq',
+        '/onboarding',
     ];
 
-    const isPublicPath = publicPaths.some(p => path === p || path.startsWith('/auth/'));
-    const isApi = path.startsWith('/api/');
-    const isStatic = path.startsWith('/_next/') || path.startsWith('/static/') || path.includes('.') || path === '/favicon.ico';
+    // Prefix matches (dynamic routes, all subpaths allowed)
+    const publicPrefixes = [
+        '/auth/',       // Auth callbacks
+        '/blog',        // Blog pages including /blog/slug
+        '/landing/',    // Marketing landing pages
+        '/keystatic',   // CMS (has its own auth)
+        '/api/',        // API routes (have their own auth)
+    ];
 
-    // 3. User Check & Redirects
+    // Check if path is public
+    const isExactPublicPath = exactPublicPaths.includes(path);
+    const isPrefixPublicPath = publicPrefixes.some(prefix => path.startsWith(prefix));
+    const isStaticAsset = path.includes('.') && !path.startsWith('/api/');
 
-    // If user is logged in
-    if (user) {
-        // If they try to go to under-construction, redirect to dashboard
-        if (path === '/under-construction') {
-            return NextResponse.redirect(new URL('/dashboard', request.url));
-        }
+    const isPublic = isExactPublicPath || isPrefixPublicPath || isStaticAsset;
+
+    // ============================================
+    // REDIRECT RULES
+    // ============================================
+
+    // Rule 1: Logged-in users trying to access under-construction → dashboard
+    if (user && path === '/under-construction') {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // If user is NOT logged in
-    if (!user && !isPublicPath && !isApi && !isStatic) {
-        // Redirect to Under Construction
+    // Rule 2: Logged-in users trying to access login → dashboard
+    if (user && path === '/login') {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // Rule 3: Non-logged-in users on protected paths → under-construction
+    if (!user && !isPublic) {
         return NextResponse.redirect(new URL('/under-construction', request.url));
     }
 
@@ -80,12 +92,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         /*
-         * Match all request paths except for the ones starting with:
+         * Match all paths except:
          * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * Feel free to modify this pattern to include more paths.
+         * - _next/image (image optimization)
+         * - Static assets (.svg, .png, etc.)
          */
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
     ],
 };

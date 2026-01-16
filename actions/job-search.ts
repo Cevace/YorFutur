@@ -327,8 +327,8 @@ export async function searchJobsAction(
                     user_id: user.id,
                     query: query,
                     location: location,
-                    freshness: freshness
-                    // sector is not in DB schema yet, skipped
+                    freshness: freshness,
+                    sector: sector
                 });
             }
         } catch (dbError) {
@@ -336,7 +336,36 @@ export async function searchJobsAction(
         }
 
         const apiKey = process.env.SERPER_API_KEY;
-        return searchJobsInternal(query, location, sector, freshness, apiKey);
+        const result = await searchJobsInternal(query, location, sector, freshness, apiKey);
+
+        // Save results to job_radar_results for dashboard display
+        if (result.success && result.data && result.data.length > 0) {
+            try {
+                // Clear old results for this user
+                await supabase
+                    .from('job_radar_results')
+                    .delete()
+                    .eq('user_id', user.id);
+
+                // Insert new results (top 5 for dashboard)
+                const dashboardRecords = result.data.slice(0, 5).map(job => ({
+                    user_id: user.id,
+                    job_title: job.title,
+                    company: job.company,
+                    location: job.location,
+                    snippet: job.snippet,
+                    url: job.url,
+                    posted_date: job.postedDate,
+                    search_query: query
+                }));
+
+                await supabase.from('job_radar_results').insert(dashboardRecords);
+            } catch (saveError) {
+                console.error('Failed to save results to dashboard:', saveError);
+            }
+        }
+
+        return result;
     } catch (error) {
         return { success: false, error: 'Er ging iets mis' };
     }

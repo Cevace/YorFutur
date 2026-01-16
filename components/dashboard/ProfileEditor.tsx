@@ -1,20 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, GraduationCap, Plus, Edit2, Trash2, Save, X, Upload, AlertTriangle, CheckCircle } from 'lucide-react';
-import { type Experience, type Education, type Language, upsertExperience, upsertEducation, deleteExperience, deleteEducation } from '@/actions/profile';
+import { Briefcase, GraduationCap, Plus, Edit2, Trash2, Save, X, Upload, AlertTriangle, CheckCircle, User } from 'lucide-react';
+import { type Experience, type Education, type Language, upsertExperience, upsertEducation, deleteExperience, deleteEducation, updateProfileSummary } from '@/actions/profile';
 import SkillsTagInput from './SkillsTagInput';
 import LanguagesSection from './LanguagesSection';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import SimpleRichTextEditor from './SimpleRichTextEditor';
 
 type ProfileEditorProps = {
     initialExperiences: Experience[];
     initialEducations: Education[];
     initialLanguages: Language[];
+    initialSummary: string;
 };
 
-export default function ProfileEditor({ initialExperiences, initialEducations, initialLanguages }: ProfileEditorProps) {
+export default function ProfileEditor({ initialExperiences, initialEducations, initialLanguages, initialSummary }: ProfileEditorProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [experiences, setExperiences] = useState<Experience[]>(initialExperiences);
@@ -24,6 +26,9 @@ export default function ProfileEditor({ initialExperiences, initialEducations, i
     const [showUploadWarning, setShowUploadWarning] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showToast, setShowToast] = useState(false);
+    const [profileSummary, setProfileSummary] = useState(initialSummary);
+    const [isSavingSummary, setIsSavingSummary] = useState(false);
+    const [summaryLastSaved, setSummaryLastSaved] = useState<Date | null>(null);
 
     // Check for success toast from URL params
     useEffect(() => {
@@ -36,6 +41,26 @@ export default function ProfileEditor({ initialExperiences, initialEducations, i
             setTimeout(() => setShowToast(false), 5000);
         }
     }, [searchParams]);
+
+    // Debounced auto-save for profile summary (backup)
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (profileSummary !== initialSummary) {
+                await updateProfileSummary(profileSummary);
+                setSummaryLastSaved(new Date());
+            }
+        }, 2000); // 2 second debounce (longer for auto-save)
+
+        return () => clearTimeout(timer);
+    }, [profileSummary, initialSummary]);
+
+    // Manual save function
+    const handleSaveSummary = async () => {
+        setIsSavingSummary(true);
+        await updateProfileSummary(profileSummary);
+        setSummaryLastSaved(new Date());
+        setIsSavingSummary(false);
+    };
 
     // Experience editing state
     const [expForm, setExpForm] = useState<Experience>({
@@ -201,6 +226,58 @@ export default function ProfileEditor({ initialExperiences, initialEducations, i
                 </button>
             </div>
 
+            {/* Profile Summary Section */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                        <User className="text-purple-600" size={20} />
+                    </div>
+                    <h2 className="font-bold text-gray-900" style={{ fontSize: '28px' }}>Profiel</h2>
+                </div>
+                <p className="text-gray-600 text-sm mb-4">
+                    Schrijf een korte samenvatting over jezelf. Dit wordt bovenaan je CV getoond.
+                </p>
+                <SimpleRichTextEditor
+                    value={profileSummary}
+                    onChange={setProfileSummary}
+                    placeholder="Bijvoorbeeld: Ervaren marketeer met 5+ jaar ervaring in digitale marketing..."
+                />
+                <div className="flex items-center justify-between mt-4">
+                    <button
+                        onClick={handleSaveSummary}
+                        disabled={isSavingSummary || profileSummary === initialSummary}
+                        className="flex items-center gap-2 bg-cevace-orange text-white px-6 py-2 rounded-full font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isSavingSummary ? (
+                            <>
+                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Opslaan...
+                            </>
+                        ) : profileSummary === initialSummary && summaryLastSaved ? (
+                            <>
+                                <CheckCircle size={16} />
+                                Bewaard
+                            </>
+                        ) : (
+                            <>
+                                <Save size={16} />
+                                Opslaan
+                            </>
+                        )}
+                    </button>
+                    {summaryLastSaved && (
+                        <span className="text-xs text-gray-400">
+                            Automatisch opgeslagen {new Date().getTime() - summaryLastSaved.getTime() < 60000
+                                ? Math.floor((new Date().getTime() - summaryLastSaved.getTime()) / 1000) + ' sec geleden'
+                                : 'zojuist'}
+                        </span>
+                    )}
+                </div>
+            </div>
+
             {/* Experiences Section */}
             <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
                 <div className="flex justify-between items-center mb-6">
@@ -332,13 +409,13 @@ export default function ProfileEditor({ initialExperiences, initialEducations, i
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowUploadWarning(false)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                             >
                                 Annuleren
                             </button>
                             <Link
-                                href="/dashboard/scan"
-                                className="flex-1 px-4 py-2 bg-cevace-orange text-white rounded-lg font-bold hover:bg-orange-600 transition-colors text-center"
+                                href="/dashboard/import"
+                                className="flex-1 px-4 py-2 bg-cevace-orange text-white rounded-full font-bold hover:bg-orange-600 transition-colors text-center"
                             >
                                 Doorgaan
                             </Link>
@@ -368,9 +445,10 @@ function ExperienceCard({ experience, onEdit, onDelete, formatDate }: {
                 <div className="flex gap-2">
                     <button
                         onClick={onEdit}
-                        className="p-2 text-gray-400 hover:text-cevace-blue transition-colors"
+                        className="flex items-center gap-2 bg-cevace-orange text-white px-4 py-2 rounded-full font-medium hover:bg-orange-600 transition-colors text-sm"
                     >
-                        <Edit2 size={18} />
+                        <Edit2 size={16} />
+                        Bewerken
                     </button>
                     <button
                         onClick={onDelete}
@@ -386,7 +464,28 @@ function ExperienceCard({ experience, onEdit, onDelete, formatDate }: {
             </p>
 
             {experience.description && (
-                <p className="text-gray-700 text-sm mb-3">{experience.description}</p>
+                <>
+                    <div
+                        className="text-gray-700 text-sm mb-3 experience-description"
+                        dangerouslySetInnerHTML={{ __html: experience.description }}
+                    />
+                    <style jsx>{`
+                        .experience-description :global(ul) {
+                            list-style-type: disc;
+                            padding-left: 1.25rem;
+                            margin: 0.25rem 0;
+                        }
+                        .experience-description :global(li) {
+                            margin: 0.25rem 0;
+                        }
+                        .experience-description :global(strong) {
+                            font-weight: 700;
+                        }
+                        .experience-description :global(em) {
+                            font-style: italic;
+                        }
+                    `}</style>
+                </>
             )}
 
             {experience.skills && experience.skills.length > 0 && (
@@ -482,11 +581,10 @@ function ExperienceForm({ form, setForm, onSave, onCancel, isSaving }: {
 
             <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Beschrijving</label>
-                <textarea
+                <SimpleRichTextEditor
                     value={form.description || ''}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cevace-blue"
+                    onChange={(value) => setForm({ ...form, description: value })}
+                    placeholder="Beschrijf je taken en verantwoordelijkheden..."
                 />
             </div>
 
@@ -502,7 +600,7 @@ function ExperienceForm({ form, setForm, onSave, onCancel, isSaving }: {
                 <button
                     onClick={onSave}
                     disabled={isSaving || !form.job_title || !form.company}
-                    className="flex-1 px-4 py-2 bg-cevace-orange text-white rounded-lg font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2 bg-cevace-orange text-white rounded-full font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                     {isSaving ? 'Opslaan...' : (
                         <>
@@ -513,7 +611,7 @@ function ExperienceForm({ form, setForm, onSave, onCancel, isSaving }: {
                 </button>
                 <button
                     onClick={onCancel}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                     disabled={isSaving}
                 >
                     Annuleren
@@ -541,9 +639,10 @@ function EducationCard({ education, onEdit, onDelete, formatDate }: {
                 <div className="flex gap-2">
                     <button
                         onClick={onEdit}
-                        className="p-2 text-gray-400 hover:text-cevace-orange transition-colors"
+                        className="flex items-center gap-2 bg-cevace-orange text-white px-4 py-2 rounded-full font-medium hover:bg-orange-600 transition-colors text-sm"
                     >
-                        <Edit2 size={18} />
+                        <Edit2 size={16} />
+                        Bewerken
                     </button>
                     <button
                         onClick={onDelete}
@@ -626,7 +725,7 @@ function EducationForm({ form, setForm, onSave, onCancel, isSaving }: {
                 <button
                     onClick={onSave}
                     disabled={isSaving || !form.school}
-                    className="flex-1 px-4 py-2 bg-cevace-orange text-white rounded-lg font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2 bg-cevace-orange text-white rounded-full font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                     {isSaving ? 'Opslaan...' : (
                         <>
@@ -637,7 +736,7 @@ function EducationForm({ form, setForm, onSave, onCancel, isSaving }: {
                 </button>
                 <button
                     onClick={onCancel}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                     disabled={isSaving}
                 >
                     Annuleren

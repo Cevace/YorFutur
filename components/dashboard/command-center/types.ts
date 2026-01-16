@@ -26,8 +26,9 @@ export interface JobMatch {
     match_score: number; // 0-100
     salary_range?: string;
     posted_at: string;
-    requirements_matched: string[];
-    requirements_missing: string[];
+    requirements_matched?: string[];
+    requirements_missing?: string[];
+    url?: string; // External vacancy URL
 }
 
 export interface PriorityAction {
@@ -102,6 +103,8 @@ export interface UserData {
     events: UpcomingEvent[];
     // Real applications from Supabase for agenda sync (optional)
     realApplications?: RealJobApplication[];
+    // Last Job Radar search query for display
+    lastSearchQuery?: string | null;
 }
 
 // Real job application type from Supabase (matches tracker.ts type)

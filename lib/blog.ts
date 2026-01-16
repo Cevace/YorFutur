@@ -1,8 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
-
-const postsDirectory = path.join(process.cwd(), 'content/blog');
+import { getBlogPosts, getBlogPost } from './directus';
 
 export type BlogPost = {
     slug: string;
@@ -12,53 +8,43 @@ export type BlogPost = {
     author: string;
     publishedDate: string;
     published: boolean;
-    coverImage?: string;
+    coverImage?: string | null;
     content: string;
 };
 
-export function getAllBlogPosts(): BlogPost[] {
-    const fileNames = fs.readdirSync(postsDirectory);
-    const posts = fileNames
-        .filter((fileName) => fileName.endsWith('.mdoc'))
-        .map((fileName) => {
-            const slug = fileName.replace(/\.mdoc$/, '');
-            return getBlogPostBySlug(slug);
-        })
-        .filter((post): post is BlogPost => post !== null);
-
-    // Sort posts by date descending
-    return posts.sort((a, b) => {
-        return new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime();
-    });
+export async function getAllBlogPosts(): Promise<BlogPost[]> {
+    const posts = await getBlogPosts();
+    return posts.map(post => ({
+        ...post,
+        author: post.author || 'Cevace',
+        publishedDate: post.publishedDate || new Date().toISOString(),
+        published: post.published ?? true,
+        content: post.content || '',
+        coverImage: post.coverImage || undefined,
+    }));
 }
 
-export function getBlogPostBySlug(slug: string): BlogPost | null {
-    try {
-        const fullPath = path.join(postsDirectory, `${slug}.mdoc`);
-        const fileContents = fs.readFileSync(fullPath, 'utf8');
-        const { data, content } = matter(fileContents);
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+    const post = await getBlogPost(slug);
+    if (!post) return null;
 
-        return {
-            slug,
-            title: data.title || 'Untitled',
-            category: data.category || 'Sollicitatie Tips',
-            excerpt: data.excerpt || '',
-            author: data.author || 'YorFutur',
-            publishedDate: data.publishedDate || new Date().toISOString(),
-            published: data.published ?? false,
-            coverImage: data.coverImage,
-            content,
-        };
-    } catch (error) {
-        console.error(`Error reading blog post: ${slug}`, error);
-        return null;
-    }
+    return {
+        ...post,
+        author: post.author || 'Cevace',
+        publishedDate: post.publishedDate || new Date().toISOString(),
+        published: post.published ?? true,
+        content: post.content || '',
+        coverImage: post.coverImage || undefined,
+    };
 }
 
-export function getPublishedBlogPosts(): BlogPost[] {
-    return getAllBlogPosts().filter((post) => post.published);
+export async function getPublishedBlogPosts(): Promise<BlogPost[]> {
+    const allPosts = await getAllBlogPosts();
+    return allPosts.filter((post) => post.published);
 }
 
-export function getBlogPostsByCategory(category: string): BlogPost[] {
-    return getPublishedBlogPosts().filter((post) => post.category === category);
+export async function getBlogPostsByCategory(category: string): Promise<BlogPost[]> {
+    const publishedPosts = await getPublishedBlogPosts();
+    return publishedPosts.filter((post) => post.category === category);
 }
+

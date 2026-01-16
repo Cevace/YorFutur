@@ -11,6 +11,7 @@ import {
     ChevronDown
 } from 'lucide-react';
 import SwarmBackground from '@/components/SwarmBackground';
+import FAQAccordion from '@/components/FAQAccordion';
 
 // --- TYPES ---
 interface BlogPost {
@@ -129,7 +130,7 @@ function formatDate(dateString: string | null): string {
 
 const Hero = ({ data }: { data: HeroData }) => (
     <section className="relative min-h-[85vh] flex items-center bg-[#22223B] overflow-hidden pt-20 pb-16">
-        <SwarmBackground position="top" intensity="intense" />
+        {/* <SwarmBackground position="top" intensity="intense" /> */}
         <div className="absolute inset-0 noise-bg opacity-40 z-[1]"></div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
@@ -279,7 +280,7 @@ const FeaturesSection = ({ features, title }: { features: FeatureData[]; title: 
                                 <IconComponent size={22} className="text-[#22223B] group-hover:text-[#d97706] transition-colors" />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '20px', lineHeight: '1.3' }} className="font-semibold text-[#22223B] mb-1 group-hover:text-[#d97706] transition-colors">
+                                <h3 style={{ fontSize: '20px', lineHeight: '1.3' }} className="font-semibold text-[#22223B] mb-1 group-hover:text-[#d97706] transition-colors capitalize">
                                     {f.title.replace(/-/g, ' ')}
                                 </h3>
                                 <p style={{ fontSize: '16px', lineHeight: '1.4' }} className="text-[#4A4E69]">{f.description}</p>
@@ -336,7 +337,7 @@ const BlogSection = ({ posts }: { posts: BlogPost[] }) => (
                                 <div className="flex items-center gap-2 text-xs font-semibold text-[#d97706] mb-3 uppercase tracking-wider">
                                     <Calendar size={12} /> {formatDate(post.publishedDate)}
                                 </div>
-                                <h3 className="text-[20px] font-sans font-semibold text-[#22223B] mb-3 line-clamp-2 group-hover:text-[#d97706] transition-colors leading-tight">
+                                <h3 style={{ fontSize: '20px' }} className="font-sans font-semibold text-[#22223B] mb-3 line-clamp-2 group-hover:text-[#d97706] transition-colors leading-tight capitalize">
                                     {post.title}
                                 </h3>
                                 <div className="mt-auto flex items-center gap-2 text-sm font-semibold text-[#22223B] group-hover:translate-x-2 transition-transform pt-4">
@@ -357,73 +358,6 @@ const BlogSection = ({ posts }: { posts: BlogPost[] }) => (
         </div>
     </section>
 );
-
-const FAQAccordion = ({ sections }: { sections: FAQSection[] }) => {
-    const [openItem, setOpenItem] = useState<string | null>(null);
-
-    const toggleItem = (id: string) => {
-        setOpenItem(openItem === id ? null : id);
-    };
-
-    return (
-        <section id="faq" className="py-24 bg-[#F2E9E4]">
-            <div className="max-w-4xl mx-auto px-6">
-                <div className="text-center mb-16">
-                    <div className="h-1 w-16 bg-[#c9ada7] mb-6 rounded-full mx-auto"></div>
-                    <h2 className="text-5xl font-semibold text-[#22223B] mb-4">Veelgestelde Vragen</h2>
-                    <p className="text-[#4A4E69] text-lg">Alles wat je moet weten over Cevace.</p>
-                </div>
-
-                <div className="space-y-8">
-                    {sections.map((section, sectionIndex) => (
-                        <div key={sectionIndex}>
-                            <h3 className="text-lg font-semibold text-[#22223B] mb-2 uppercase tracking-wider">{section.headline}</h3>
-                            <div className="w-24 h-1 bg-[#c9ada7] rounded-full mb-4" />
-                            <div className="space-y-3">
-                                {section.items.map((item, itemIndex) => {
-                                    const itemId = `${sectionIndex}-${itemIndex}`;
-                                    const isOpen = openItem === itemId;
-
-                                    return (
-                                        <div
-                                            key={itemIndex}
-                                            className="bg-white border border-[#C9ADA7]/20 overflow-hidden transition-all"
-                                            style={{ borderRadius: '16px' }}
-                                        >
-                                            <button
-                                                onClick={() => toggleItem(itemId)}
-                                                className="w-full p-6 text-left flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors"
-                                            >
-                                                <span className="font-medium text-[#22223B]">{item.question}</span>
-                                                <ChevronDown
-                                                    size={20}
-                                                    className={`text-[#d97706] shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
-                                                />
-                                            </button>
-                                            <div
-                                                className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
-                                            >
-                                                <div className="px-6 pb-6 text-[#4A4E69] leading-relaxed">
-                                                    {item.answer}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="text-center mt-12">
-                    <NextLink href="/landing/faq" className="text-[#d97706] font-semibold hover:underline">
-                        Bekijk alle vragen →
-                    </NextLink>
-                </div>
-            </div>
-        </section>
-    );
-};
 
 const PricingCardComponent = ({ tier, description, price, period, features, featured = false, buttonText, buttonLink }: {
     tier: string;

@@ -95,10 +95,10 @@ export default function RadarSearchForm({ onSearch, isLoading }: RadarSearchForm
             <button
                 type="submit"
                 disabled={isLoading}
-                className="mt-4 flex items-center gap-2 bg-cevace-orange text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-4 flex items-center gap-2 bg-cevace-orange text-white px-6 py-3 rounded-full font-bold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <Search size={20} />
-                {isLoading ? 'Zoeken...' : 'Zoek Vacatures'}
+                {isLoading ? 'Zoeken...' : 'Zoek vacatures'}
             </button>
         </form>
     );

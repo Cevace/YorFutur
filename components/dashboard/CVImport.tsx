@@ -100,6 +100,29 @@ export default function CVImport() {
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            {/* Info Box - Moved to top */}
+            <div className="mb-8 rounded-lg p-6" style={{ backgroundColor: '#EADED8' }}>
+                <h3 className="font-bold mb-2" style={{ color: '#000000' }}>Hoe werkt het?</h3>
+                <ul className="space-y-2 text-sm" style={{ color: '#000000' }}>
+                    <li className="flex items-start gap-2">
+                        <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                        <span>Upload je CV (PDF of Word)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                        <span>We analyseren automatisch je werkervaring en opleidingen</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                        <span>Je profiel wordt direct bijgewerkt</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                        <span>Controleer en bewerk je gegevens op je profielpagina</span>
+                    </li>
+                </ul>
+            </div>
+
             {errorMessage && (
                 <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
                     <span>{errorMessage}</span>
@@ -147,8 +170,8 @@ export default function CVImport() {
                     </div>
                 ) : (
                     <div className="animate-in fade-in zoom-in duration-300">
-                        <div className="w-20 h-20 bg-cevace-orange/10 rounded-full flex items-center justify-center mx-auto mb-6 text-cevace-orange shadow-sm">
-                            <Upload size={40} />
+                        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style={{ backgroundColor: '#F2E9E4' }}>
+                            <Upload size={40} style={{ color: '#000000' }} />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-3">Upload je CV</h3>
                         <p className="text-gray-600 mb-6 max-w-md mx-auto">
@@ -167,35 +190,12 @@ export default function CVImport() {
                         </div>
                         <button
                             onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                            className="mt-8 bg-cevace-orange text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all transform hover:-translate-y-0.5"
+                            className="mt-8 bg-cevace-orange text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all transform hover:-translate-y-0.5"
                         >
-                            Selecteer Bestand
+                            Selecteer bestand
                         </button>
                     </div>
                 )}
-            </div>
-
-            {/* Info Box */}
-            <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-                <h3 className="font-bold text-gray-900 mb-2">Hoe werkt het?</h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                    <li className="flex items-start gap-2">
-                        <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
-                        <span>Upload je CV (PDF of Word)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
-                        <span>We analyseren automatisch je werkervaring en opleidingen</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
-                        <span>Je profiel wordt direct bijgewerkt</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
-                        <span>Controleer en bewerk je gegevens op je profielpagina</span>
-                    </li>
-                </ul>
             </div>
 
             {/* Warning Modal */}

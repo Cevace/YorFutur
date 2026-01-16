@@ -89,7 +89,26 @@ export async function GET(request: Request) {
                 continue;
             }
 
-            // d. Save new matches to DB
+            // d. Save to job_radar_results for dashboard display (replace old results)
+            await supabase
+                .from('job_radar_results')
+                .delete()
+                .eq('user_id', sub.user_id);
+
+            const dashboardRecords = searchResult.data.slice(0, 5).map(job => ({
+                user_id: sub.user_id,
+                job_title: job.title,
+                company: job.company,
+                location: job.location,
+                snippet: job.snippet,
+                url: job.url,
+                posted_date: job.postedDate,
+                search_query: searchPref.query
+            }));
+
+            await supabase.from('job_radar_results').insert(dashboardRecords);
+
+            // e. Save new matches to job_matches for history/deduplication
             for (const job of newJobs) {
                 await supabase.from('job_matches').insert({
                     user_id: sub.user_id,

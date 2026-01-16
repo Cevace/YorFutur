@@ -116,7 +116,7 @@ export default function CandidateCommandCenter({ userData }: CandidateCommandCen
 
             {/* Block D: Job Radar - Half */}
             <GridCellHalf>
-                <JobRadarWidget matches={userData.jobMatches} />
+                <JobRadarWidget matches={userData.jobMatches} lastSearchQuery={userData.lastSearchQuery} />
             </GridCellHalf>
 
             {/* Block E: Opportunity Hub - Half (replaced KnowledgeGrowth) */}

@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import ProfileEditor from '@/components/dashboard/ProfileEditor';
+import { getProfileSummary } from '@/actions/profile';
 
 export default async function ProfilePage() {
     const supabase = createClient();
@@ -9,6 +10,9 @@ export default async function ProfilePage() {
     if (!user) {
         redirect('/login');
     }
+
+    // Fetch profile summary
+    const { data: summary } = await getProfileSummary();
 
     // Fetch experiences
     const { data: experiences } = await supabase
@@ -36,6 +40,7 @@ export default async function ProfilePage() {
             initialExperiences={experiences || []}
             initialEducations={educations || []}
             initialLanguages={languages || []}
+            initialSummary={summary || ''}
         />
     );
 }

@@ -78,7 +78,7 @@ export default function AdminClient({
                                 <Users className="w-4 h-4" />
                                 CRM
                             </a>
-                            <a href="/keystatic" target="_blank" className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors">
+                            <a href="/cms/admin" target="_blank" className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors">
                                 <Layers className="w-4 h-4" />
                                 CMS
                             </a>
@@ -193,7 +193,7 @@ export default function AdminClient({
 
                                 {/* Quick Action: CMS */}
                                 <a
-                                    href="/keystatic"
+                                    href="/cms/admin"
                                     target="_blank"
                                     className="group relative p-5 bg-white rounded-lg border border-zinc-200 shadow-sm hover:shadow-lg hover:border-zinc-300 hover:-translate-y-0.5 transition-all cursor-pointer overflow-hidden"
                                 >

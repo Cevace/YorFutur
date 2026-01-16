@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Database, Users, LayoutDashboard, Shield, LogOut } from 'lucide-react';
+import { Database, Users, LayoutDashboard, Shield, LogOut, BarChart3 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
@@ -42,7 +42,14 @@ export default function AdminSidebar() {
                         Overzicht
                     </Link>
                     <Link
-                        href="/keystatic"
+                        href="/admin/analytics"
+                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                        <BarChart3 className="w-4 h-4" />
+                        Analytics
+                    </Link>
+                    <Link
+                        href="/cms/admin"
                         target="_blank"
                         className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
                     >

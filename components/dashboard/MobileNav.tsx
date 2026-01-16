@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, Briefcase, ScanLine, User, LogOut, Menu, X, Users, Kanban, Target, Mic } from 'lucide-react';
+import { LayoutDashboard, FileText, User, LogOut, Menu, X, Users, Kanban, Target, UserCircle, Sparkles, Upload, Link2, Mic, Brain, Eye } from 'lucide-react';
 import { signOut } from '@/actions/auth';
 
 export default function MobileNav({ userRole, followUpCount }: { userRole: string; followUpCount: number }) {
@@ -69,11 +69,14 @@ export default function MobileNav({ userRole, followUpCount }: { userRole: strin
                     </button>
                 </div>
 
-                <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                     <MobileNavLink href="/dashboard" icon={<LayoutDashboard size={20} />} label="Overzicht" active={isActive('/dashboard')} onClick={() => setIsOpen(false)} />
+                    <MobileNavLink href="/dashboard/profile" icon={<UserCircle size={20} />} label="Mijn Profiel" active={isActive('/dashboard/profile')} onClick={() => setIsOpen(false)} />
                     <MobileNavLink href="/dashboard/cvs" icon={<FileText size={20} />} label="Mijn CV's" active={isActive('/dashboard/cvs')} onClick={() => setIsOpen(false)} />
-                    <MobileNavLink href="/dashboard/experience" icon={<Briefcase size={20} />} label="Werkervaring" active={isActive('/dashboard/experience')} onClick={() => setIsOpen(false)} />
-                    <MobileNavLink href="/dashboard/scan" icon={<ScanLine size={20} />} label="Scanner" active={isActive('/dashboard/scan')} onClick={() => setIsOpen(false)} />
+                    <MobileNavLink href="/dashboard/import" icon={<Upload size={20} />} label="CV Import" active={isActive('/dashboard/import')} onClick={() => setIsOpen(false)} />
+                    <MobileNavLink href="/dashboard/tuner" icon={<Sparkles size={20} />} label="CV Tuner" active={isActive('/dashboard/tuner')} onClick={() => setIsOpen(false)} />
+                    <MobileNavLink href="/dashboard/motivation-letter" icon={<FileText size={20} />} label="Motivatiebrief" active={isActive('/dashboard/motivation-letter')} onClick={() => setIsOpen(false)} />
+                    <MobileNavLink href="/dashboard/cv-settings" icon={<Link2 size={20} />} label="Live CV Links" active={isActive('/dashboard/cv-settings')} onClick={() => setIsOpen(false)} />
                     <MobileNavLink
                         href="/dashboard/tracker"
                         icon={<Kanban size={20} />}
@@ -96,7 +99,20 @@ export default function MobileNav({ userRole, followUpCount }: { userRole: strin
                         active={isActive('/dashboard/coach')}
                         onClick={() => setIsOpen(false)}
                     />
-                    <MobileNavLink href="/dashboard/account" icon={<User size={20} />} label="Account" active={isActive('/dashboard/account')} onClick={() => setIsOpen(false)} />
+                    <MobileNavLink
+                        href="/dashboard/assessment"
+                        icon={<Brain size={20} />}
+                        label="Assessment Trainer"
+                        active={isActive('/dashboard/assessment')}
+                        onClick={() => setIsOpen(false)}
+                    />
+                    <MobileNavLink
+                        href="/dashboard/career-spy"
+                        icon={<Eye size={20} />}
+                        label="Career Spy"
+                        active={isActive('/dashboard/career-spy')}
+                        onClick={() => setIsOpen(false)}
+                    />
 
                     {userRole === 'admin' && (
                         <div className="pt-4 mt-4 border-t border-gray-100">
@@ -106,7 +122,14 @@ export default function MobileNav({ userRole, followUpCount }: { userRole: strin
                     )}
                 </nav>
 
-                <div className="p-4 border-t border-gray-100 space-y-4 bg-gray-50">
+                <div className="p-4 border-t border-gray-100 space-y-2 bg-gray-50">
+                    <MobileNavLink
+                        href="/dashboard/account"
+                        icon={<User size={20} />}
+                        label="Account"
+                        active={isActive('/dashboard/account')}
+                        onClick={() => setIsOpen(false)}
+                    />
                     <button
                         onClick={handleSignOut}
                         className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg w-full transition-colors font-medium"
@@ -125,7 +148,7 @@ function MobileNavLink({ href, icon, label, active, onClick, badge }: { href: st
         <Link
             href={href}
             onClick={onClick}
-            className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${active
+            className={`flex items-center justify-between px-4 py-2 rounded-lg transition-colors ${active
                 ? 'bg-cevace-orange/10 text-cevace-orange font-medium'
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}

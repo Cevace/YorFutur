@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Sparkles, Loader2, Lightbulb, TrendingUp, Heart } from 'lucide-react';
 import type { GenerateLetterInput } from '@/lib/motivation-letter/types';
+import { MIN_VACANCY_LENGTH } from '@/lib/motivation-letter/constants';
+import { toast } from 'react-hot-toast';
 
 interface LetterGeneratorProps {
     onGenerate: (vacancyText: string, profileData: any) => Promise<void>;
@@ -23,7 +25,12 @@ export default function LetterGenerator({
         e.preventDefault();
 
         if (!vacancyText.trim()) {
-            alert('Plak eerst de vacaturetekst');
+            toast.error('Plak eerst de vacaturetekst');
+            return;
+        }
+
+        if (vacancyText.trim().length < MIN_VACANCY_LENGTH) {
+            toast.error(`Vacaturetekst moet minimaal ${MIN_VACANCY_LENGTH} karakters bevatten voor goede resultaten`);
             return;
         }
 

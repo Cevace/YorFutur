@@ -100,14 +100,12 @@ export default async function CVsPage() {
 
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="font-bold text-cevace-blue mb-8" style={{ fontSize: '45px', letterSpacing: '-0.02em' }}>Mijn CV's</h1>
-                    <p className="text-gray-500 mt-2">Beheer je geüploade CV's en gegenereerde CV's.</p>
-                </div>
+            <div>
+                <h1 className="font-bold text-cevace-blue mb-4" style={{ fontSize: '45px', letterSpacing: '-0.02em' }}>Mijn CV's</h1>
+                <p className="text-gray-500 mb-6">Beheer je geüploade CV's en gegenereerde CV's. Gegenereerde CV's worden 60 dagen bewaard.</p>
                 <Link
                     href="/dashboard/import"
-                    className="flex items-center gap-2 bg-cevace-orange text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
+                    className="inline-flex items-center gap-2 bg-cevace-orange text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
                 >
                     <Upload size={20} />
                     Nieuw CV uploaden
@@ -136,8 +134,20 @@ export default async function CVsPage() {
                     {allCVs.map((cv) => (
                         <div key={`${cv.type}-${cv.id}`} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group">
                             <div className="flex items-start justify-between mb-4">
-                                <div className={`w-12 h-12 ${cv.type === 'tailored' ? 'bg-blue-50 text-cevace-blue' : 'bg-orange-50 text-cevace-orange'} rounded-xl flex items-center justify-center`}>
-                                    {cv.type === 'tailored' ? <Sparkles size={24} /> : <FileText size={24} />}
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-12 h-12 ${cv.type === 'tailored' ? 'bg-blue-50' : 'bg-orange-50 text-cevace-orange'} rounded-xl flex items-center justify-center`}>
+                                        {cv.type === 'tailored' ? <Sparkles size={24} style={{ color: '#000000' }} /> : <FileText size={24} />}
+                                    </div>
+                                    {cv.type === 'tailored' && (
+                                        <span className="inline-flex items-center gap-1 px-3 py-1 text-white text-xs font-medium rounded-full" style={{ backgroundColor: '#4A4E69' }}>
+                                            Gegenereerd
+                                        </span>
+                                    )}
+                                    {cv.type === 'uploaded' && (
+                                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 text-orange-700 text-xs font-medium rounded-full">
+                                            Geüpload
+                                        </span>
+                                    )}
                                 </div>
                                 <form action={cv.type === 'tailored' ? handleDeleteTailored : handleDeleteUploaded}>
                                     <input type="hidden" name="id" value={cv.id} />
@@ -151,19 +161,7 @@ export default async function CVsPage() {
                                 </form>
                             </div>
 
-                            {/* Badge */}
-                            <div className="mb-2">
-                                {cv.type === 'tailored' ? (
-                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-md">
-                                        <Sparkles size={12} />
-                                        Gegenereerd
-                                    </span>
-                                ) : (
-                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 text-xs font-medium rounded-md">
-                                        Geüpload
-                                    </span>
-                                )}
-                            </div>
+
 
                             <h3 className="font-bold text-gray-900 mb-1 truncate" style={{ fontSize: '18px' }} title={getTitle(cv)}>
                                 {getTitle(cv)}
@@ -182,7 +180,8 @@ export default async function CVsPage() {
                             <div className="flex gap-3">
                                 <a
                                     href={`/api/download-cv?id=${cv.id}&type=${cv.type}`}
-                                    className="flex-1 flex items-center justify-center gap-2 bg-gray-50 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition-colors text-sm"
+                                    className="flex-1 flex items-center justify-center gap-2 text-white py-2.5 rounded-full font-medium hover:opacity-80 transition-all text-sm"
+                                    style={{ backgroundColor: 'rgba(234, 88, 12, 0.5)' }}
                                 >
                                     <Download size={16} />
                                     Downloaden

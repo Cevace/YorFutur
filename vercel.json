@@ -3,6 +3,10 @@
         {
             "path": "/api/cleanup-expired-cvs",
             "schedule": "0 2 * * *"
+        },
+        {
+            "path": "/api/cron/job-radar",
+            "schedule": "0 7 * * *"
         }
     ]
 }

@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { updateProfile } from '@/actions/profile';
 import { User, Mail, MapPin, Phone, Save } from 'lucide-react';
+import ProfilePhotoUpload from '@/components/profile/ProfilePhotoUpload';
+import Image from 'next/image';
+import { createClient } from '@/utils/supabase/client';
 
 interface ProfileFormProps {
     user: any;
@@ -12,6 +15,18 @@ interface ProfileFormProps {
 export default function ProfileForm({ user, profile }: ProfileFormProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [isPending, setIsPending] = useState(false);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+    // Convert storage path to public URL on mount
+    useEffect(() => {
+        if (profile?.profile_photo_url) {
+            const supabase = createClient();
+            const { data: { publicUrl } } = supabase.storage
+                .from('profile-photos')
+                .getPublicUrl(profile.profile_photo_url);
+            setPhotoUrl(publicUrl);
+        }
+    }, [profile?.profile_photo_url]);
 
     async function handleSubmit(formData: FormData) {
         setIsPending(true);
@@ -30,9 +45,21 @@ export default function ProfileForm({ user, profile }: ProfileFormProps) {
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 h-full">
                 <div className="flex justify-between items-start mb-8">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-cevace-blue text-white rounded-full flex items-center justify-center text-2xl font-bold">
-                            {profile?.first_name?.[0] || user.email?.[0].toUpperCase()}
-                        </div>
+                        {photoUrl ? (
+                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-cevace-blue">
+                                <Image
+                                    src={photoUrl}
+                                    alt="Profielfoto"
+                                    width={64}
+                                    height={64}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        ) : (
+                            <div className="w-16 h-16 bg-cevace-blue text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                                {profile?.first_name?.[0] || user.email?.[0].toUpperCase()}
+                            </div>
+                        )}
                         <div>
                             <h2 className="text-xl font-bold text-gray-900">
                                 {profile?.first_name ? `${profile.first_name} ${profile.last_name}` : 'Profielgegevens'}
@@ -81,6 +108,16 @@ export default function ProfileForm({ user, profile }: ProfileFormProps) {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Profile Photo Upload Section */}
+                <div className="mt-8 pt-8 border-t border-gray-100">
+                    <h3 className="text-sm font-medium text-gray-700 mb-4">Profielfoto</h3>
+                    <ProfilePhotoUpload
+                        currentPhotoUrl={photoUrl}
+                        onUploadSuccess={(url) => setPhotoUrl(url)}
+                        onDeleteSuccess={() => setPhotoUrl(null)}
+                    />
                 </div>
             </div>
         );

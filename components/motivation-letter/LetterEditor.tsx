@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { Save, Download, FileText, Lightbulb, CheckCircle, Loader2 } from 'lucide-react';
 import { saveEditedLetterAction } from '@/actions/motivation-letter';
 import type { MotivationLetterVariant } from '@/lib/motivation-letter/types';
+import { useDebouncedCallback } from 'use-debounce';
+import { toast } from 'react-hot-toast';
+import { TEXTAREA_DEBOUNCE_MS } from '@/lib/motivation-letter/constants';
 
 interface LetterEditorProps {
     variant: MotivationLetterVariant;
@@ -15,8 +18,8 @@ interface LetterEditorProps {
 
 export default function LetterEditor({ variant, letterId, focusPoints = [], goldenHook, userId }: LetterEditorProps) {
     const [editedContent, setEditedContent] = useState(variant.content_body);
+    const [displayContent, setDisplayContent] = useState(variant.content_body); // Local state for immediate UI updates
     const [isSaving, setIsSaving] = useState(false);
-    const [saveSuccess, setSaveSuccess] = useState(false);
     const [candidateName, setCandidateName] = useState('');
     const [candidateEmail, setCandidateEmail] = useState('');
     const [candidatePhone, setCandidatePhone] = useState('');
@@ -25,6 +28,18 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
     const [companyName, setCompanyName] = useState('');
     const [contactPerson, setContactPerson] = useState('');
     const [companyAddress, setCompanyAddress] = useState('');
+
+    // Debounced content update - updates the actual state after delay
+    const debouncedSetContent = useDebouncedCallback(
+        (value: string) => setEditedContent(value),
+        TEXTAREA_DEBOUNCE_MS
+    );
+
+    // Handler for textarea changes - updates display immediately, debounces actual state
+    const handleContentChange = (value: string) => {
+        setDisplayContent(value); // Immediate UI update
+        debouncedSetContent(value); // Debounced state update
+    };
 
     // Auto-fill candidate info from profile (TODO: fetch from profile action)
     useEffect(() => {
@@ -35,12 +50,11 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
 
     const handleSave = async () => {
         if (!letterId) {
-            alert('Geen brief ID gevonden');
+            toast.error('Geen brief ID gevonden');
             return;
         }
 
         setIsSaving(true);
-        setSaveSuccess(false);
 
         // Call with all 3 required arguments
         const result = await saveEditedLetterAction(letterId, variant.variant_id, editedContent);
@@ -48,10 +62,9 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
         setIsSaving(false);
 
         if (result.success) {
-            setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 3000);
+            toast.success('Brief succesvol opgeslagen!');
         } else {
-            alert(result.error || 'Opslaan mislukt');
+            toast.error(result.error || 'Opslaan mislukt');
         }
     };
 
@@ -59,7 +72,7 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
         try {
             // Validate required fields
             if (!candidateName.trim() || !candidateEmail.trim()) {
-                alert('Vul minimaal je naam en email in voordat je de PDF downloadt');
+                toast.error('Vul minimaal je naam en email in voordat je de PDF downloadt');
                 return;
             }
 
@@ -103,9 +116,11 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
             link.download = generatePDFFilename(companyName.trim() || undefined);
             link.click();
             URL.revokeObjectURL(url);
+
+            toast.success('PDF succesvol gedownload!');
         } catch (error) {
             console.error('PDF generation error:', error);
-            alert('PDF generatie mislukt. Probeer het opnieuw.');
+            toast.error('PDF generatie mislukt. Probeer het opnieuw.');
         }
     };
 
@@ -123,13 +138,6 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
 
     return (
         <div className="space-y-6">
-            {/* Success Message */}
-            {saveSuccess && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
-                    <CheckCircle size={20} />
-                    <span>Brief succesvol opgeslagen!</span>
-                </div>
-            )}
 
             {/* Main Editor Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -299,7 +307,7 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
                             <h3 className="text-xl font-bold text-gray-900">Brief inhoud</h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <FileText size={16} />
-                                <span>{editedContent.split(/\s+/).length} woorden</span>
+                                <span>{displayContent.split(/\s+/).filter(w => w.length > 0).length} woorden</span>
                             </div>
                         </div>
 
@@ -310,8 +318,8 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
                         </div>
 
                         <textarea
-                            value={editedContent}
-                            onChange={(e) => setEditedContent(e.target.value)}
+                            value={displayContent}
+                            onChange={(e) => handleContentChange(e.target.value)}
                             className="w-full h-96 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cevace-blue resize-none font-serif"
                             placeholder="Je motivatiebrief..."
                             style={{ lineHeight: '1.8' }}

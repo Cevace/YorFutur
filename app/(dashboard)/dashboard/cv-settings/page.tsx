@@ -74,7 +74,7 @@ export default function CVSettingsPage() {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
     return (
-        <div>
+        <div className="overflow-x-hidden">
             {/* Header Section */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Live CV Links</h1>

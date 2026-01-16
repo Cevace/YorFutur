@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Target, Bell, BellOff } from 'lucide-react';
+import { Target, Bell, BellOff, Lightbulb, Building2 } from 'lucide-react';
 import RadarSearchForm from '@/components/dashboard/RadarSearchForm';
 import JobCard from '@/components/dashboard/JobCard';
 import ManagerModal from '@/components/dashboard/ManagerModal';
@@ -95,6 +95,42 @@ export default function RadarPage() {
                 )}
             </div>
 
+            {/* Intro Blocks - Two Column Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {/* Left Block - Main Text */}
+                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <div className="flex items-start gap-3">
+                        <Target size={24} className="text-cevace-orange flex-shrink-0 animate-pulse mt-1" />
+                        <div>
+                            <p className="text-gray-700 text-sm leading-relaxed">
+                                <strong>Cevace unieke Job Radar</strong> verleent je directe toegang tot de vacatures van duizenden werkgevers.
+                            </p>
+                            <p className="text-gray-600 text-sm leading-relaxed mt-2">
+                                Cevace detecteert nieuwe vacatures in de milliseconde nadat ze live gaan op de bedrijfsserver. Dit is geen &quot;Zoeken&quot; meer. Dit is <strong>targeted acquisition</strong>. Zorg dat jouw CV op het bureau van HR ligt in het <strong>&apos;Golden Window&apos;</strong>: de 48 uur voordat de grote stroom op gang komt.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Block - Tips */}
+                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <div className="space-y-3 text-sm text-gray-600">
+                        <p className="flex items-center gap-3">
+                            <Lightbulb size={18} className="text-yellow-500 flex-shrink-0" />
+                            <span><strong>Pro Tip:</strong> Selecteer een sector voor gerichte resultaten</span>
+                        </p>
+                        <p className="flex items-center gap-3">
+                            <Target size={18} className="text-cevace-orange flex-shrink-0" />
+                            <span><strong>Strategie:</strong> Alle resultaten zijn direct van werkgevers</span>
+                        </p>
+                        <p className="flex items-center gap-3">
+                            <Building2 size={18} className="text-cevace-blue flex-shrink-0" />
+                            <span><strong>Bereik:</strong> Van lokale specialist tot nationale gigant</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* Search Form */}
             <div className="mb-8">
                 <RadarSearchForm onSearch={handleSearch} isLoading={isSearching} />
@@ -122,22 +158,6 @@ export default function RadarPage() {
                                 onGeneratePitch={handleGeneratePitch}
                             />
                         ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Empty State */}
-            {jobs.length === 0 && !isSearching && !error && (
-                <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                    <Target size={64} className="mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-xl font-bold text-gray-700 mb-2">Klaar om de Hidden Job Market te ontdekken?</h3>
-                    <p className="text-gray-500 max-w-md mx-auto mb-6">
-                        Zoek naar vacatures direct op bedrijfswebsites - van lokale MKB tot nationale helden zoals Technische Unie.
-                    </p>
-                    <div className="mt-6 space-y-2 text-sm text-gray-600 max-w-lg mx-auto">
-                        <p>💡 <strong>Pro Tip:</strong> Selecteer een sector voor gerichte resultaten</p>
-                        <p>🎯 <strong>Strategie:</strong> Alle resultaten zijn direct van werkgevers</p>
-                        <p>🏢 <strong>Bereik:</strong> Van lokale specialist tot nationale gigant</p>
                     </div>
                 </div>
             )}

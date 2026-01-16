@@ -1,21 +1,41 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { List } from 'lucide-react';
 
-type TOCItem = {
+interface TocItem {
     id: string;
     text: string;
     level: number;
-};
+}
 
-type TableOfContentsProps = {
-    items: TOCItem[];
-};
+interface TableOfContentsProps {
+    content: string;
+}
 
-const TableOfContents: React.FC<TableOfContentsProps> = ({ items }) => {
+export default function TableOfContents({ content }: TableOfContentsProps) {
+    const [headings, setHeadings] = useState<TocItem[]>([]);
     const [activeId, setActiveId] = useState<string>('');
 
     useEffect(() => {
+        // Extract headings from markdown content (## and ###)
+        const headingRegex = /^(#{2,3})\s+(.+)$/gm;
+        const matches = [...content.matchAll(headingRegex)];
+
+        const items: TocItem[] = matches.map((match) => {
+            const level = match[1].length;
+            const text = match[2].trim();
+            const id = text
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-');
+
+            return { id, text, level };
+        });
+
+        setHeadings(items);
+
+        // Set up intersection observer for active heading
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -24,53 +44,55 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ items }) => {
                     }
                 });
             },
-            { rootMargin: '-80px 0px -80% 0px' }
+            { rootMargin: '-100px 0px -80% 0px' }
         );
 
-        items.forEach((item) => {
-            const element = document.getElementById(item.id);
+        // Observe all headings
+        items.forEach(({ id }) => {
+            const element = document.getElementById(id);
             if (element) observer.observe(element);
         });
 
         return () => observer.disconnect();
-    }, [items]);
+    }, [content]);
 
-    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-        e.preventDefault();
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    };
-
-    if (items.length === 0) return null;
+    if (headings.length < 3) {
+        // Don't show TOC if there are less than 3 headings
+        return null;
+    }
 
     return (
-        <div className="rounded-lg shadow-sm border border-gray-100 px-6 pt-6 pb-5" style={{ backgroundColor: '#faf4f1' }}>
-            <h3 className="font-semibold mb-3 text-sm" style={{ color: '#000000' }}>
-                Inhoudsopgave
-            </h3>
-            <nav className="space-y-2">
-                {items.map((item) => (
-                    <a
-                        key={item.id}
-                        href={`#${item.id}`}
-                        onClick={(e) => handleClick(e, item.id)}
-                        className={`block text-sm transition-colors ${activeId === item.id
-                            ? 'text-cevace-orange font-medium'
-                            : 'hover:text-cevace-blue'
-                            }`}
-                        style={{
-                            paddingLeft: item.level === 3 ? '1rem' : '0',
-                            color: activeId === item.id ? undefined : '#000000'
-                        }}
-                    >
-                        {item.text}
-                    </a>
-                ))}
+        <div className="bg-white rounded-xl p-6 border border-gray-200 sticky top-24">
+            <div className="flex items-center gap-2 mb-4">
+                <List size={20} className="text-cevace-blue" />
+                <h3 className="font-bold text-lg" style={{ color: '#000000' }}>
+                    Inhoudsopgave
+                </h3>
+            </div>
+            <nav>
+                <ul className="space-y-2">
+                    {headings.map(({ id, text, level }) => (
+                        <li key={id} className={level === 3 ? 'ml-4' : ''}>
+                            <a
+                                href={`#${id}`}
+                                className={`block text-sm transition-colors hover:text-cevace-blue ${activeId === id
+                                        ? 'text-cevace-blue font-semibold'
+                                        : 'text-gray-600'
+                                    }`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    document.getElementById(id)?.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start',
+                                    });
+                                }}
+                            >
+                                {text}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
             </nav>
         </div>
     );
-};
-
-export default TableOfContents;
+}

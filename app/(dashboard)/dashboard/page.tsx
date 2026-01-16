@@ -28,13 +28,44 @@ export default async function DashboardPage() {
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
+    // Fetch user's last Job Radar search
+    const { data: lastSearch } = await supabase
+        .from('job_radar_searches')
+        .select('query, location, sector')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    // Fetch user's saved Job Radar results (from cron or manual search)
+    const { data: radarResults } = await supabase
+        .from('job_radar_results')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    // Transform radar results to JobMatch format for the widget
+    const jobRadarMatches = (radarResults || []).map((result: any, index: number) => ({
+        id: result.id,
+        job_title: result.job_title,
+        company_name: result.company,
+        location: result.location || 'Nederland',
+        match_score: 95 - (index * 5), // Simulated score, decreasing by position
+        posted_at: result.created_at,
+        url: result.url // External URL for direct linking
+    }));
+
     // Create user data with real first name, userRole, and real applications
     const userData = {
         ...mockUserData,
         firstName,
         userRole: 'Senior Frontend Developer',
         // Override with real applications for agenda sync
-        realApplications: (applications as JobApplication[]) || []
+        realApplications: (applications as JobApplication[]) || [],
+        // Add real Job Radar data
+        jobMatches: jobRadarMatches.length > 0 ? jobRadarMatches : mockUserData.jobMatches,
+        lastSearchQuery: lastSearch?.query || null
     };
 
     return (
@@ -65,3 +96,4 @@ export default async function DashboardPage() {
         </div>
     );
 }
+

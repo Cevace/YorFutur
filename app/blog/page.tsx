@@ -14,7 +14,7 @@ function capitalizeFirstWord(str: string): string {
 export const revalidate = 60;
 
 export default async function BlogPage() {
-    const posts = getPublishedBlogPosts();
+    const posts = await getPublishedBlogPosts();
 
     return (
         <div className="min-h-screen py-12" style={{ backgroundColor: '#F2E9E4' }}>

@@ -9,15 +9,15 @@ type TOCItem = {
 };
 
 type BlogSidebarProps = {
-    tocItems: TOCItem[];
+    content: string;
 };
 
-const BlogSidebar: React.FC<BlogSidebarProps> = ({ tocItems }) => {
+const BlogSidebar: React.FC<BlogSidebarProps> = ({ content }) => {
     return (
         <aside className="space-y-6">
             <div className="sticky top-8 space-y-6">
                 {/* Table of Contents */}
-                {tocItems.length > 0 && <TableOfContents items={tocItems} />}
+                <TableOfContents content={content} />
 
                 {/* CTA Card */}
                 <div className="bg-gradient-to-br from-cevace-blue to-blue-900 rounded-lg p-6 text-white shadow-lg">

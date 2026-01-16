@@ -573,3 +573,211 @@ export async function getContactInfo(): Promise<{ success: boolean; data?: Conta
         return { success: false, error: error.message };
     }
 }
+
+// ===== PROFILE PHOTO ACTIONS =====
+
+/**
+ * Upload profile photo to Supabase Storage
+ * Validates file type and size, uploads to user's folder, updates profiles table
+ */
+export async function uploadProfilePhoto(formData: FormData): Promise<{ success: boolean; photoUrl?: string; error?: string }> {
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const file = formData.get('photo') as File;
+
+        if (!file) {
+            return { success: false, error: 'Geen bestand geselecteerd' };
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            return { success: false, error: 'Alleen JPEG, PNG en WebP bestanden zijn toegestaan' };
+        }
+
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            return { success: false, error: 'Bestand is te groot (max 5MB)' };
+        }
+
+        // Delete existing photo if exists
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('profile_photo_url')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.profile_photo_url) {
+            // Delete old photo from storage
+            await supabase.storage
+                .from('profile-photos')
+                .remove([profile.profile_photo_url]);
+        }
+
+        // Upload new photo
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/profile.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('profile-photos')
+            .upload(fileName, file, {
+                upsert: true,
+                contentType: file.type
+            });
+
+        if (uploadError) {
+            console.error('Upload error:', uploadError);
+            return { success: false, error: 'Upload mislukt' };
+        }
+
+        // Update profile with new photo URL
+        const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ profile_photo_url: fileName })
+            .eq('id', user.id);
+
+        if (updateError) {
+            console.error('Update error:', updateError);
+            return { success: false, error: 'Database update mislukt' };
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('profile-photos')
+            .getPublicUrl(fileName);
+
+        revalidatePath('/dashboard/account');
+        revalidatePath('/dashboard/profile');
+        revalidatePath('/dashboard/ultimate-cv-builder');
+
+        return { success: true, photoUrl: publicUrl };
+    } catch (error: any) {
+        console.error('Error uploading profile photo:', error);
+        return { success: false, error: 'Er ging iets mis bij het uploaden' };
+    }
+}
+
+/**
+ * Delete profile photo from Supabase Storage and database
+ */
+export async function deleteProfilePhoto(): Promise<{ success: boolean; error?: string }> {
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        // Get current photo URL
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('profile_photo_url')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile?.profile_photo_url) {
+            return { success: false, error: 'Geen foto om te verwijderen' };
+        }
+
+        // Delete from storage
+        const { error: deleteError } = await supabase.storage
+            .from('profile-photos')
+            .remove([profile.profile_photo_url]);
+
+        if (deleteError) {
+            console.error('Delete error:', deleteError);
+            return { success: false, error: 'Verwijderen mislukt' };
+        }
+
+        // Update profile to remove photo URL
+        const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ profile_photo_url: null })
+            .eq('id', user.id);
+
+        if (updateError) {
+            console.error('Update error:', updateError);
+            return { success: false, error: 'Database update mislukt' };
+        }
+
+        revalidatePath('/dashboard/account');
+        revalidatePath('/dashboard/profile');
+        revalidatePath('/dashboard/ultimate-cv-builder');
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error deleting profile photo:', error);
+        return { success: false, error: 'Er ging iets mis bij het verwijderen' };
+    }
+}
+
+
+// ===== PROFILE SUMMARY ACTIONS =====
+
+/**
+ * Get user's profile summary
+ */
+export async function getProfileSummary(): Promise<{ success: boolean; data?: string; error?: string }> {
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('profile_summary')
+            .eq('id', user.id)
+            .single();
+
+        if (error) throw error;
+
+        return { success: true, data: data?.profile_summary || '' };
+    } catch (error: any) {
+        console.error('Error fetching profile summary:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Update user's profile summary
+ * Basic sanitization applied (strips script tags)
+ */
+export async function updateProfileSummary(summary: string): Promise<{ success: boolean; error?: string }> {
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        // Basic sanitization: remove script tags
+        const sanitized = summary.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ profile_summary: sanitized })
+            .eq('id', user.id);
+
+        if (error) throw error;
+
+        revalidatePath('/dashboard/profile');
+        revalidatePath('/dashboard/ultimate-cv-builder');
+        
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error updating profile summary:', error);
+        return { success: false, error: error.message };
+    }
+}

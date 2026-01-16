@@ -10,13 +10,14 @@ import { nl } from 'date-fns/locale';
 
 interface JobRadarWidgetProps {
     matches: JobMatch[];
+    lastSearchQuery?: string | null;
 }
 
 /**
  * JobRadarWidget - Block D (Top Picks)
  * Shows top 3 job matches with company info and match score badge
  */
-export default function JobRadarWidget({ matches }: JobRadarWidgetProps) {
+export default function JobRadarWidget({ matches, lastSearchQuery }: JobRadarWidgetProps) {
     const { isSupported, subscription, subscribeToPush, unsubscribeFromPush, loading } = usePushNotifications();
 
     // Take top 3 matches sorted by score
@@ -41,7 +42,7 @@ export default function JobRadarWidget({ matches }: JobRadarWidgetProps) {
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                     <Sparkles size={20} className="text-cevace-orange" />
                     Job Radar
@@ -53,8 +54,8 @@ export default function JobRadarWidget({ matches }: JobRadarWidgetProps) {
                         onClick={subscription ? unsubscribeFromPush : subscribeToPush}
                         disabled={loading}
                         className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full transition-colors ${subscription
-                                ? 'bg-green-50 text-green-700 cursor-pointer hover:bg-green-100'
-                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            ? 'bg-green-50 text-green-700 cursor-pointer hover:bg-green-100'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                             }`}
                         title={subscription ? 'Klik om alerts uit te zetten' : 'Zet notificaties aan voor nieuwe matches'}
                     >
@@ -74,6 +75,14 @@ export default function JobRadarWidget({ matches }: JobRadarWidgetProps) {
                     </button>
                 )}
             </div>
+
+            {/* Last Search Query */}
+            {lastSearchQuery && (
+                <div className="mb-4 px-3 py-2 bg-orange-50 rounded-lg">
+                    <p className="text-xs text-slate-500">Zoekopdracht:</p>
+                    <p className="text-sm font-medium text-slate-900 truncate">{lastSearchQuery}</p>
+                </div>
+            )}
 
             {topMatches.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
@@ -97,9 +106,11 @@ export default function JobRadarWidget({ matches }: JobRadarWidgetProps) {
                             const fresh = isFresh(job.posted_at);
 
                             return (
-                                <Link
+                                <a
                                     key={job.id}
-                                    href={`/dashboard/radar?job=${job.id}`}
+                                    href={job.url || `/dashboard/radar?job=${job.id}`}
+                                    target={job.url ? '_blank' : undefined}
+                                    rel={job.url ? 'noopener noreferrer' : undefined}
                                     className="block p-4 rounded-xl bg-slate-50 hover:bg-orange-50/50 transition-all duration-200 group relative"
                                 >
                                     {/* Freshness Badge */}
@@ -151,7 +162,7 @@ export default function JobRadarWidget({ matches }: JobRadarWidgetProps) {
                                             </div>
                                         </div>
                                     </div>
-                                </Link>
+                                </a>
                             );
                         })}
                     </div>

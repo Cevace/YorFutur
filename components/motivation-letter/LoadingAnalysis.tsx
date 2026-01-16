@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Building2, Sparkles, CheckCircle2 } from 'lucide-react';
 import type { AnalysisInsights } from '@/lib/motivation-letter/types';
+import { STEP_TIMINGS, COMPLETE_DELAY_MS } from '@/lib/motivation-letter/constants';
 
 interface LoadingAnalysisProps {
     insights?: AnalysisInsights;
@@ -29,22 +30,27 @@ export default function LoadingAnalysis({ insights, onComplete }: LoadingAnalysi
         // Show icons immediately
         setShowIcons(true);
 
-        // Timing for each step (total ~6 seconds)
-        const stepTimings = [2000, 2000, 2000]; // 2s per step
+        const timeouts: NodeJS.Timeout[] = [];
 
         let totalTime = 0;
-        stepTimings.forEach((delay, index) => {
+        STEP_TIMINGS.forEach((delay, index) => {
             totalTime += delay;
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 setCurrentStep(index + 1);
             }, totalTime);
+            timeouts.push(timeout);
         });
 
-        // When all steps done, wait 500ms then call onComplete
-        setTimeout(() => {
+        // When all steps done, wait then call onComplete
+        const completeTimeout = setTimeout(() => {
             onComplete();
-        }, totalTime + 500);
+        }, totalTime + COMPLETE_DELAY_MS);
+        timeouts.push(completeTimeout);
 
+        // Cleanup function to clear all timeouts
+        return () => {
+            timeouts.forEach(clearTimeout);
+        };
     }, [insights, onComplete]);
 
     return (
@@ -129,8 +135,8 @@ export default function LoadingAnalysis({ insights, onComplete }: LoadingAnalysi
                             }}
                             transition={{ delay: index * 0.3 }}
                             className={`flex items-start gap-4 p-4 rounded-xl transition-all duration-500 ${currentStep > index
-                                    ? 'bg-white shadow-md border border-green-100'
-                                    : 'bg-gray-100/50'
+                                ? 'bg-white shadow-md border border-green-100'
+                                : 'bg-gray-100/50'
                                 }`}
                         >
                             {/* Checkmark or Loading */}
