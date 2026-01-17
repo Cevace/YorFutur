@@ -111,15 +111,38 @@ export default function WaitlistPage() {
 
                 {/* Mobile menu */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden bg-[#22223B] border-t border-white/10">
-                        <div className="px-6 py-4 space-y-4">
-                            <Link
-                                href="/login"
-                                className="block text-sm font-medium text-white hover:text-[#d97706] transition-colors"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                                Al lid? Inloggen →
-                            </Link>
+                    <div className="fixed inset-0 z-[100] md:hidden bg-[#22223B]">
+                        <div className="flex flex-col h-full">
+                            {/* Header with close button */}
+                            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10">
+                                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                                    <Image
+                                        src="/logo/Cevace-wit-logo.svg"
+                                        alt="Cevace"
+                                        width={140}
+                                        height={36}
+                                        className="h-9 w-auto"
+                                    />
+                                </Link>
+                                <button
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="text-white hover:text-[#d97706] transition-colors p-2"
+                                    aria-label="Sluit menu"
+                                >
+                                    <X size={28} />
+                                </button>
+                            </div>
+
+                            {/* Menu content */}
+                            <div className="flex-1 px-6 py-8 space-y-6">
+                                <Link
+                                    href="/login"
+                                    className="block text-lg font-medium text-white hover:text-[#d97706] transition-colors"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    Al lid? Inloggen →
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 )}
