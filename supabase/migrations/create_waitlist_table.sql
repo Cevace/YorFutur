@@ -1,5 +1,5 @@
 -- =====================================================
--- Create Waitlist Table for Pre-Launch Email Signups
+-- Create Waitlist Table for Pre-Launch Email Signups (IDEMPOTENT VERSION)
 -- =====================================================
 -- This table stores email addresses from users who sign up
 -- via the waitlist landing page before public launch
@@ -29,7 +29,12 @@ WHERE synced_to_brevo = false;
 -- Step 3: Enable Row Level Security
 ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
 
--- Step 4: Create RLS policies
+-- Step 4: Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Anyone can signup to waitlist" ON public.waitlist;
+DROP POLICY IF EXISTS "Super admins can view waitlist" ON public.waitlist;
+DROP POLICY IF EXISTS "Super admins can update waitlist" ON public.waitlist;
+
+-- Step 5: Create RLS policies
 -- Allow anyone to insert (for public signup form)
 CREATE POLICY "Anyone can signup to waitlist"
 ON public.waitlist
@@ -61,14 +66,14 @@ USING (
   )
 );
 
--- Step 5: Add comments for documentation
+-- Step 6: Add comments for documentation
 COMMENT ON TABLE public.waitlist IS 'Stores email signups for pre-launch waitlist';
 COMMENT ON COLUMN public.waitlist.email IS 'Email address of waitlist subscriber';
 COMMENT ON COLUMN public.waitlist.synced_to_brevo IS 'Whether this email has been synced to Brevo';
 COMMENT ON COLUMN public.waitlist.brevo_contact_id IS 'Brevo contact ID if synced';
 COMMENT ON COLUMN public.waitlist.metadata IS 'Additional metadata (referrer, UTM params, etc)';
 
--- Step 6: Verify migration
+-- Step 7: Verify migration
 SELECT 
     table_name,
     column_name,

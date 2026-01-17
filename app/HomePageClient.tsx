@@ -419,7 +419,7 @@ const Footer = () => (
                         Jouw partner in het vinden van de perfecte baan. Wij combineren persoonlijke coaching met slimme technologie.
                     </p>
                     <div className="flex space-x-4">
-                        <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#d97706] transition-colors duration-300 group"><Linkedin size={18} /></a>
+                        <a href="https://linkedin.com/company/cevace/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#d97706] transition-colors duration-300 group"><Linkedin size={18} /></a>
                         <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#d97706] transition-colors duration-300 group"><Instagram size={18} /></a>
                         <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#d97706] transition-colors duration-300 group"><Facebook size={18} /></a>
                         <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#d97706] transition-colors duration-300 group"><Twitter size={18} /></a>
