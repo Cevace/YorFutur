@@ -66,8 +66,8 @@ export default function WaitlistPage() {
             {message && (
                 <div
                     className={`p-4 rounded-lg text-sm font-medium ${message.type === 'success'
-                        ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                        : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                            ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                            : 'bg-red-500/10 border border-red-500/30 text-red-400'
                         }`}
                 >
                     {message.text}
@@ -109,40 +109,17 @@ export default function WaitlistPage() {
                     </button>
                 </div>
 
-                {/* Mobile menu */}
+                {/* Mobile menu dropdown - compact with transparency */}
                 {isMobileMenuOpen && (
-                    <div className="fixed inset-0 z-[100] md:hidden bg-[#22223B]">
-                        <div className="flex flex-col h-full">
-                            {/* Header with close button */}
-                            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10">
-                                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-                                    <Image
-                                        src="/logo/Cevace-wit-logo.svg"
-                                        alt="Cevace"
-                                        width={140}
-                                        height={36}
-                                        className="h-9 w-auto"
-                                    />
-                                </Link>
-                                <button
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="text-white hover:text-[#d97706] transition-colors p-2"
-                                    aria-label="Sluit menu"
-                                >
-                                    <X size={28} />
-                                </button>
-                            </div>
-
-                            {/* Menu content */}
-                            <div className="flex-1 px-6 py-8 space-y-6">
-                                <Link
-                                    href="/login"
-                                    className="block text-lg font-medium text-white hover:text-[#d97706] transition-colors"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                    Al lid? Inloggen →
-                                </Link>
-                            </div>
+                    <div className="md:hidden bg-[#22223B]/80 backdrop-blur-lg border-t border-white/10">
+                        <div className="px-6 py-3">
+                            <Link
+                                href="/login"
+                                className="block py-2 text-white hover:text-[#d97706] transition-colors"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                Al lid? Inloggen →
+                            </Link>
                         </div>
                     </div>
                 )}
