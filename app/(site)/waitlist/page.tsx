@@ -66,8 +66,8 @@ export default function WaitlistPage() {
             {message && (
                 <div
                     className={`p-4 rounded-lg text-sm font-medium ${message.type === 'success'
-                            ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                            : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                        ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                        : 'bg-red-500/10 border border-red-500/30 text-red-400'
                         }`}
                 >
                     {message.text}
