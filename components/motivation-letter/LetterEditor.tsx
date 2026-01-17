@@ -5,6 +5,7 @@ import { Save, Download, FileText, Lightbulb, CheckCircle, Loader2 } from 'lucid
 import { saveEditedLetterAction } from '@/actions/motivation-letter';
 import type { MotivationLetterVariant } from '@/lib/motivation-letter/types';
 import { useDebouncedCallback } from 'use-debounce';
+import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
 import { TEXTAREA_DEBOUNCE_MS } from '@/lib/motivation-letter/constants';
 
@@ -23,7 +24,6 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
     const [candidateName, setCandidateName] = useState('');
     const [candidateEmail, setCandidateEmail] = useState('');
     const [candidatePhone, setCandidatePhone] = useState('');
-    const [candidateAddress, setCandidateAddress] = useState('');
     const [candidateCity, setCandidateCity] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [contactPerson, setContactPerson] = useState('');
@@ -41,11 +41,28 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
         debouncedSetContent(value); // Debounced state update
     };
 
-    // Auto-fill candidate info from profile (TODO: fetch from profile action)
+    // Auto-fill candidate info from profile
     useEffect(() => {
-        // Placeholder - will integrate with profile data
-        setCandidateName('');
-        setCandidateEmail('');
+        const fetchProfileData = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('first_name, last_name, city, phone')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    setCandidateName(`${profile.first_name || ''} ${profile.last_name || ''}`.trim());
+                    setCandidateEmail(user.email || '');
+                    setCandidatePhone(profile.phone || '');
+                    setCandidateCity(profile.city || '');
+                }
+            }
+        };
+        fetchProfileData();
     }, []);
 
     const handleSave = async () => {
@@ -98,7 +115,6 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
                 candidateName: candidateName.trim(),
                 candidateEmail: candidateEmail.trim(),
                 candidatePhone: candidatePhone.trim() || undefined,
-                candidateAddress: candidateAddress.trim() || undefined,
                 candidateCity: candidateCity.trim() || undefined,
                 companyName: companyName.trim() || undefined,
                 contactPerson: contactPerson.trim() || undefined,
@@ -233,18 +249,6 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-gray-900 mb-2">
-                                    Adres
-                                </label>
-                                <input
-                                    type="text"
-                                    value={candidateAddress}
-                                    onChange={(e) => setCandidateAddress(e.target.value)}
-                                    placeholder="Straat 123, 1234 AB"
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cevace-blue"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-900 mb-2">
                                     Woonplaats *
                                 </label>
                                 <input
@@ -334,7 +338,7 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
                     <button
                         onClick={handleSave}
                         disabled={isSaving || !editedContent.trim()}
-                        className="flex-1 bg-cevace-orange text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="flex-1 bg-cevace-orange text-white px-6 py-3 rounded-full font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
                     >
                         {isSaving ? (
                             <>
@@ -351,7 +355,7 @@ export default function LetterEditor({ variant, letterId, focusPoints = [], gold
 
                     <button
                         onClick={handleDownloadPDF}
-                        className="flex-1 bg-cevace-blue text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-900 transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 bg-cevace-blue text-white px-6 py-3 rounded-full font-bold hover:bg-blue-900 transition-colors flex items-center justify-center gap-2 shadow-md"
                     >
                         <Download size={20} />
                         <span>Download PDF</span>

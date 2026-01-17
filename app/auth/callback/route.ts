@@ -16,13 +16,28 @@ export async function GET(request: Request) {
             const { data: { user } } = await supabase.auth.getUser();
 
             if (user) {
-                // Check if user already has a subscription
+                // Check user's profile for beta tester status
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('is_beta_tester')
+                    .eq('id', user.id)
+                    .single();
+
+                // If not a beta tester, redirect to waitlist
+                if (!profile?.is_beta_tester) {
+                    return NextResponse.redirect(`${origin}/waitlist`);
+                }
+
+                // Beta tester - check if they have a subscription
                 const existingSubscription = await getUserSubscription(user.id);
 
                 if (!existingSubscription) {
-                    // New user! Start 7-day Executive trial
+                    // New beta tester! Start 7-day Executive trial
                     await startTrial(user.id);
                 }
+
+                // Redirect to dashboard
+                return NextResponse.redirect(`${origin}${next}`);
             }
 
             return NextResponse.redirect(`${origin}${next}`);

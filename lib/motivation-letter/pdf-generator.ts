@@ -6,7 +6,6 @@ export interface MotivationLetterPDFData {
     candidateName: string;
     candidateEmail: string;
     candidatePhone?: string;
-    candidateAddress?: string;
     candidateCity?: string;
     companyName?: string;
     contactPerson?: string;

@@ -14,6 +14,7 @@ interface LoadingAnalysisProps {
 export default function LoadingAnalysis({ insights, onComplete }: LoadingAnalysisProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [showIcons, setShowIcons] = useState(false);
+    const [elapsedTime, setElapsedTime] = useState(0);
 
     // If no insights yet (API still loading), show placeholders
     const steps = insights ? [
@@ -26,11 +27,25 @@ export default function LoadingAnalysis({ insights, onComplete }: LoadingAnalysi
         'Drie strategische invalshoeken formuleren...'
     ];
 
+    // Calculate total time and progress
+    const totalStepTime = STEP_TIMINGS.reduce((a, b) => a + b, 0);
+    const totalTime = totalStepTime + COMPLETE_DELAY_MS;
+    const progressPercentage = Math.min(100, Math.round((elapsedTime / totalTime) * 100));
+    const timeRemaining = Math.max(0, totalTime - elapsedTime);
+    const secondsRemaining = Math.ceil(timeRemaining / 1000);
+
     useEffect(() => {
         // Show icons immediately
         setShowIcons(true);
 
         const timeouts: NodeJS.Timeout[] = [];
+        const intervals: NodeJS.Timeout[] = [];
+
+        // Update elapsed time every 100ms for smooth progress
+        const progressInterval = setInterval(() => {
+            setElapsedTime(prev => Math.min(prev + 100, totalTime));
+        }, 100);
+        intervals.push(progressInterval);
 
         let totalTime = 0;
         STEP_TIMINGS.forEach((delay, index) => {
@@ -47,14 +62,15 @@ export default function LoadingAnalysis({ insights, onComplete }: LoadingAnalysi
         }, totalTime + COMPLETE_DELAY_MS);
         timeouts.push(completeTimeout);
 
-        // Cleanup function to clear all timeouts
+        // Cleanup function to clear all timeouts and intervals
         return () => {
             timeouts.forEach(clearTimeout);
+            intervals.forEach(clearInterval);
         };
     }, [insights, onComplete]);
 
     return (
-        <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: '#F2E9E4' }}>
             <div className="max-w-2xl w-full px-8">
                 {/* Header */}
                 <motion.div
@@ -171,20 +187,43 @@ export default function LoadingAnalysis({ insights, onComplete }: LoadingAnalysi
                     ))}
                 </div>
 
-                {/* Progress Bar */}
-                <motion.div
-                    className="mt-8 h-2 bg-gray-200 rounded-full overflow-hidden"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                >
+                {/* Progress Bar with Percentage */}
+                <div className="mt-8">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-cevace-blue to-cevace-orange"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(currentStep / steps.length) * 100}%` }}
-                        transition={{ duration: 0.5 }}
-                    />
-                </motion.div>
+                        className="relative h-3 bg-gray-200 rounded-full overflow-hidden"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <motion.div
+                            className="h-full bg-gradient-to-r from-cevace-blue to-cevace-orange relative"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${progressPercentage}%` }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {/* Percentage Text Overlay */}
+                            {progressPercentage > 15 && (
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-white drop-shadow">
+                                    {progressPercentage}%
+                                </span>
+                            )}
+                        </motion.div>
+                    </motion.div>
+
+                    {/* Time Remaining */}
+                    <motion.p
+                        className="text-center mt-3 text-sm text-gray-600"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.7 }}
+                    >
+                        {secondsRemaining > 0 ? (
+                            <>Nog ongeveer <span className="font-semibold text-cevace-orange">{secondsRemaining}</span> seconden...</>
+                        ) : (
+                            <span className="text-green-600 font-semibold">Bijna klaar! ✓</span>
+                        )}
+                    </motion.p>
+                </div>
             </div>
         </div>
     );

@@ -49,6 +49,7 @@ export async function middleware(request: NextRequest) {
         '/privacy',
         '/faq',
         '/onboarding',
+        '/waitlist',  // Add waitlist to public paths
     ];
 
     // Prefix matches (dynamic routes, all subpaths allowed)
@@ -71,17 +72,55 @@ export async function middleware(request: NextRequest) {
     // REDIRECT RULES
     // ============================================
 
-    // Rule 1: Logged-in users trying to access under-construction → dashboard
-    if (user && path === '/under-construction') {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+    // Rule 1: Logged-in users trying to access under-construction or waitlist
+    if (user && (path === '/under-construction' || path === '/waitlist')) {
+        // Check if they are a beta tester
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_beta_tester')
+            .eq('id', user.id)
+            .single();
+
+        // Beta testers go to dashboard, non-beta stay on waitlist
+        if (profile?.is_beta_tester) {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+        // Non-beta testers can view waitlist page
+        if (path === '/under-construction') {
+            return NextResponse.redirect(new URL('/waitlist', request.url));
+        }
     }
 
-    // Rule 2: Logged-in users trying to access login → dashboard
+    // Rule 2: Logged-in users trying to access login
     if (user && path === '/login') {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        // Check if they are a beta tester
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_beta_tester')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.is_beta_tester) {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        } else {
+            return NextResponse.redirect(new URL('/waitlist', request.url));
+        }
     }
 
-    // Rule 3: Non-logged-in users on protected paths → under-construction
+    // Rule 3: Logged-in NON-BETA users trying to access protected paths → waitlist
+    if (user && !isPublic) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_beta_tester')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile?.is_beta_tester) {
+            return NextResponse.redirect(new URL('/waitlist', request.url));
+        }
+    }
+
+    // Rule 4: Non-logged-in users on protected paths → under-construction
     if (!user && !isPublic) {
         return NextResponse.redirect(new URL('/under-construction', request.url));
     }

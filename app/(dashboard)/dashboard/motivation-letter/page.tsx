@@ -205,9 +205,9 @@ export default function MotivationLetterPage() {
                         {/* Back Button */}
                         <button
                             onClick={handleReset}
-                            className="mb-6 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
+                            className="mb-6 px-6 py-3 bg-cevace-orange text-white rounded-full hover:bg-orange-600 text-sm font-bold transition-all shadow-md"
                         >
-                            ← Nieuwe Brief Genereren
+                            ← Nieuwe motivatiebrieven genereren
                         </button>
 
                         {/* Header for Selection */}
@@ -246,7 +246,7 @@ export default function MotivationLetterPage() {
                                     <p className="text-red-600 mb-4">Variant niet gevonden</p>
                                     <button
                                         onClick={handleBackToSelection}
-                                        className="px-4 py-2 bg-cevace-blue text-white rounded-lg"
+                                        className="px-6 py-3 bg-cevace-orange text-white rounded-full font-bold hover:bg-orange-600 transition-all shadow-lg"
                                     >
                                         Terug naar selectie
                                     </button>
@@ -259,7 +259,7 @@ export default function MotivationLetterPage() {
                                 {/* Back Button */}
                                 <button
                                     onClick={handleBackToSelection}
-                                    className="mb-6 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium flex items-center gap-2"
+                                    className="mb-6 px-6 py-2.5 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 text-sm font-semibold flex items-center gap-2 transition-all"
                                 >
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

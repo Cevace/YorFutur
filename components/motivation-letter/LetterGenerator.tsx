@@ -94,7 +94,7 @@ export default function LetterGenerator({
                     <button
                         type="submit"
                         disabled={loading || !vacancyText.trim()}
-                        className="w-full bg-cevace-orange text-white py-4 rounded-xl font-bold hover:bg-orange-600 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-cevace-orange text-white py-4 rounded-full font-bold hover:bg-orange-600 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
                     >
                         {loading ? (
                             <>
@@ -104,7 +104,7 @@ export default function LetterGenerator({
                         ) : (
                             <>
                                 <Sparkles className="w-5 h-5" />
-                                Genereer 3 Motivatiebrieven
+                                Genereer 3 motivatiebrieven
                             </>
                         )}
                     </button>

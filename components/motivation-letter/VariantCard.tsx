@@ -58,8 +58,8 @@ export default function VariantCard({ variant, selected, onSelect, index }: Vari
             <button
                 onClick={onSelect}
                 className={`w-full h-full text-left p-6 rounded-2xl border-2 transition-all duration-300 group hover:scale-[1.02] ${selected
-                        ? `${config.borderColor} shadow-2xl ring-4`
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg'
+                    ? `${config.borderColor} shadow-2xl ring-4`
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg'
                     }`}
                 style={selected ? { backgroundColor: config.bgColor, '--tw-ring-opacity': 0.2 } as React.CSSProperties : {}}
             >
@@ -130,7 +130,7 @@ export default function VariantCard({ variant, selected, onSelect, index }: Vari
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                 >
-                    <div className={`w-full py-3 rounded-lg font-bold text-center transition-all ${selected
+                    <div className={`w-full py-3 rounded-full font-bold text-center transition-all ${selected
                         ? `bg-gradient-to-r ${config.gradient} text-white shadow-lg`
                         : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200'
                         }`}>

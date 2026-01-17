@@ -25,12 +25,16 @@ export default function BetaLoginForm() {
                 return;
             }
 
-            // Explicit redirect for Beta users
-            window.location.href = '/dashboard';
+            // Success - redirect handled by server action
+            // But force a router refresh and navigation
+            router.refresh();
+            router.push('/dashboard');
         } catch (err: any) {
             // Check for redirect error (which is actually success in Server Actions)
             if (err?.digest?.includes('NEXT_REDIRECT')) {
-                window.location.href = '/dashboard';
+                // Success! The redirect will happen automatically
+                router.refresh();
+                router.push('/dashboard');
                 return;
             }
 

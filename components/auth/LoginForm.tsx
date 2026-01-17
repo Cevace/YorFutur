@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { login, signup } from '@/actions/auth';
 import Link from 'next/link';
 import GoogleSignInButton from './GoogleSignInButton';
+import LinkedInSignInButton from './LinkedInSignInButton';
 
 export default function LoginForm() {
     const searchParams = useSearchParams();
@@ -118,6 +119,9 @@ export default function LoginForm() {
 
                 {/* Google Sign-In Button */}
                 <GoogleSignInButton />
+
+                {/* LinkedIn Sign-In Button */}
+                <LinkedInSignInButton />
 
                 {/* Divider */}
                 <div className="relative">
