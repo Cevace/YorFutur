@@ -70,6 +70,19 @@ export interface QuoteData {
     photo: string | null;
 }
 
+// Helper to get image URL (handles both relative paths and Directus asset IDs)
+function getDirectusImageUrl(imageIdOrUrl: string | null): string | null {
+    if (!imageIdOrUrl) return null;
+
+    // If it starts with http or /, it's a raw URL (legacy or external)
+    if (imageIdOrUrl.startsWith('http') || imageIdOrUrl.startsWith('/')) {
+        return imageIdOrUrl;
+    }
+
+    // Otherwise, assume it is a Directus File ID (UUID), construct assets URL
+    return `${DIRECTUS_URL}/assets/${imageIdOrUrl}`;
+}
+
 // Fetch wrapper with caching
 async function fetchDirectus<T>(endpoint: string): Promise<T | null> {
     try {
@@ -135,7 +148,7 @@ export async function getHomepageHero(): Promise<HeroData> {
         ctaPrimaryText: data.cta_primary_text || defaults.ctaPrimaryText,
         ctaPrimaryLink: data.cta_primary_link || defaults.ctaPrimaryLink,
         ctaSecondaryText: data.cta_secondary_text || defaults.ctaSecondaryText,
-        heroImage: data.hero_image || defaults.heroImage,
+        heroImage: getDirectusImageUrl(data.hero_image) || defaults.heroImage,
         socialProofText: data.social_proof_text || defaults.socialProofText,
     };
 }
@@ -163,7 +176,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         title: post.title,
         category: post.category || 'Uncategorized',
         excerpt: post.excerpt || '',
-        coverImage: post.cover_image,
+        coverImage: getDirectusImageUrl(post.cover_image) || null,
         publishedDate: post.published_date,
         author: post.author,
         published: post.published,
@@ -194,7 +207,7 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
         title: post.title,
         category: post.category || 'Uncategorized',
         excerpt: post.excerpt || '',
-        coverImage: post.cover_image,
+        coverImage: getDirectusImageUrl(post.cover_image) || null,
         publishedDate: post.published_date,
         author: post.author,
         published: post.published,
@@ -223,7 +236,7 @@ export async function getTestimonials(): Promise<Testimonial[]> {
         role: t.role || '',
         company: t.company || '',
         quote: t.quote || '',
-        photo: t.photo,
+        photo: getDirectusImageUrl(t.photo) || null,
         rating: t.rating || 5,
     }));
 }
@@ -365,7 +378,7 @@ export async function getQuoteData(): Promise<QuoteData> {
         text: settings.quoteText,
         author: settings.quoteAuthor,
         role: settings.quoteRole,
-        photo: settings.quotePhoto,
+        photo: getDirectusImageUrl(settings.quotePhoto) || null,
     };
 }
 
