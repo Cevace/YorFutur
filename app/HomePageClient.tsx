@@ -8,10 +8,12 @@ import {
     Linkedin, Brain, Target, Users, Play,
     Sparkles, Calendar,
     Instagram, Facebook, Twitter, Mail, Menu, X,
-    ChevronDown
+    ChevronDown, Rocket, Shield, TrendingUp, Briefcase, Award
 } from 'lucide-react';
 import SwarmBackground from '@/components/SwarmBackground';
 import FAQAccordion from '@/components/FAQAccordion';
+import HorizontalAccordion from '@/components/HorizontalAccordion';
+import { AccordionTool } from '@/lib/directus';
 
 // --- TYPES ---
 interface BlogPost {
@@ -98,6 +100,7 @@ interface HomePageClientProps {
     layout: SectionConfig[];
     companyLogos: string[];
     quoteData: QuoteData;
+    accordionTools: AccordionTool[];
 }
 
 // --- STYLES & ANIMATIONS ---
@@ -261,6 +264,12 @@ const iconMap: Record<string, React.ElementType> = {
     users: Users,
     target: Target,
     sparkles: Sparkles,
+    rocket: Rocket,
+    star: Star,
+    shield: Shield,
+    'trending-up': TrendingUp,
+    briefcase: Briefcase,
+    award: Award,
 };
 
 const FeaturesSection = ({ features, title }: { features: FeatureData[]; title: string }) => (
@@ -280,10 +289,14 @@ const FeaturesSection = ({ features, title }: { features: FeatureData[]; title: 
                                 <IconComponent size={22} className="text-[#22223B] group-hover:text-[#d97706] transition-colors" />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '20px', lineHeight: '1.3' }} className="font-semibold text-[#22223B] mb-1 group-hover:text-[#d97706] transition-colors capitalize">
+                                <h3 style={{ fontSize: '20px', lineHeight: '1.3' }} className="font-semibold text-[#22223B] mb-1 group-hover:text-[#d97706] transition-colors">
                                     {f.title.replace(/-/g, ' ')}
                                 </h3>
-                                <p style={{ fontSize: '16px', lineHeight: '1.4' }} className="text-[#4A4E69]">{f.description}</p>
+                                <div
+                                    style={{ fontSize: '16px', lineHeight: '1.4' }}
+                                    className="text-[#4A4E69]"
+                                    dangerouslySetInnerHTML={{ __html: f.description }}
+                                />
                             </div>
                         </div>
                     );
@@ -314,7 +327,7 @@ const BlogSection = ({ posts }: { posts: BlogPost[] }) => (
         <div className="relative w-full overflow-hidden pb-10">
             <div className="flex gap-8 animate-scroll-blog w-[200%] hover:[animation-play-state:paused] pl-6">
                 {[...posts, ...posts].map((post, i) => (
-                    <NextLink key={i} href={post.slug} className="flex-shrink-0 w-[350px] md:w-[400px] group cursor-pointer block">
+                    <NextLink key={i} href={`/blog/${post.slug}`} className="flex-shrink-0 w-[350px] md:w-[400px] group cursor-pointer block">
                         <div className="bg-white overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-[#C9ADA7]/10 h-full flex flex-col rounded-[20px]">
                             <div className="relative h-60 bg-gray-200 overflow-hidden">
                                 {post.coverImage ? (
@@ -467,7 +480,7 @@ const Footer = () => (
     </footer>
 );
 
-export default function HomePageClient({ blogPosts, faqSections, heroData, testimonials, features, layout, companyLogos, quoteData }: HomePageClientProps) {
+export default function HomePageClient({ blogPosts, faqSections, heroData, testimonials, features, layout, companyLogos, quoteData, accordionTools }: HomePageClientProps) {
     const renderSection = (section: SectionConfig) => {
         if (!section.enabled) return null;
 
@@ -482,6 +495,8 @@ export default function HomePageClient({ blogPosts, faqSections, heroData, testi
                 return <BlogSection key="blog" posts={blogPosts} />;
             case 'faq':
                 return <FAQAccordion key="faq" sections={faqSections} />;
+            case 'accordion':
+                return <HorizontalAccordion key="accordion" items={accordionTools} />;
             case 'pricing':
                 // Pricing section temporarily disabled to fix build errors
                 return null;

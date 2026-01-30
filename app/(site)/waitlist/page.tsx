@@ -66,8 +66,8 @@ export default function WaitlistPage() {
             {message && (
                 <div
                     className={`p-4 rounded-lg text-sm font-medium ${message.type === 'success'
-                            ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                            : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                        ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                        : 'bg-red-500/10 border border-red-500/30 text-red-400'
                         }`}
                 >
                     {message.text}
@@ -77,7 +77,7 @@ export default function WaitlistPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#22223B] via-[#1a1c30] to-[#22223B] flex flex-col">
+        <div className="min-h-screen bg-gradient-to-b from-[#22223B] to-[#f2e9e4] flex flex-col">
             {/* Navigation */}
             <nav className="border-b border-white/10 bg-white/5 backdrop-blur-lg">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -109,13 +109,13 @@ export default function WaitlistPage() {
                     </button>
                 </div>
 
-                {/* Mobile menu dropdown - compact with transparency */}
+                {/* Mobile menu dropdown - compact with stable classes */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden bg-[#22223B]/80 backdrop-blur-lg border-t border-white/10">
+                    <div className="md:hidden bg-slate-900 bg-opacity-80 backdrop-blur-lg border-t border-white/10">
                         <div className="px-6 py-3">
                             <Link
                                 href="/login"
-                                className="block py-2 text-white hover:text-[#d97706] transition-colors"
+                                className="block py-2 text-white hover:text-orange-600 transition-colors"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 Al lid? Inloggen →
@@ -151,7 +151,7 @@ export default function WaitlistPage() {
 
                 {/* Section 1: Waarom solliciteren vaak onnodig ingewikkeld voelt */}
                 <div className="max-w-4xl mx-auto mb-24">
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 space-y-8">
+                    <div className="bg-gradient-to-b from-white/10 to-white/5 border border-white/10 rounded-3xl p-8 md:p-12 space-y-8">
                         <h2 className="text-3xl md:text-4xl font-bold text-white text-center">
                             Waarom solliciteren vaak onnodig ingewikkeld voelt
                         </h2>
@@ -194,7 +194,7 @@ export default function WaitlistPage() {
 
                 {/* Section 2: Waarom je je nu al kunt aanmelden */}
                 <div className="max-w-4xl mx-auto mb-24">
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 space-y-8">
+                    <div className="bg-gradient-to-b from-white/10 to-white/5 border border-white/10 rounded-3xl p-8 md:p-12 space-y-8">
                         <h2 className="text-3xl md:text-4xl font-bold text-white text-center">
                             Waarom je je nu al kunt aanmelden
                         </h2>
@@ -241,7 +241,7 @@ export default function WaitlistPage() {
 
                 {/* Section 3: Ontwikkeld met oog voor vertrouwen */}
                 <div className="max-w-4xl mx-auto mb-24">
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 space-y-8">
+                    <div className="bg-gradient-to-b from-white/10 to-white/5 border border-white/10 rounded-3xl p-8 md:p-12 space-y-8">
                         <h2 className="text-3xl md:text-4xl font-bold text-white text-center">
                             Ontwikkeld met oog voor vertrouwen
                         </h2>
@@ -308,9 +308,6 @@ export default function WaitlistPage() {
                     </div>
                 </div>
             </main>
-
-            {/* Footer */}
-            <Footer />
         </div>
     );
 }

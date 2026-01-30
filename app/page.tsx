@@ -7,14 +7,15 @@ import {
     getHomepageLayout,
     getCompanyLogos,
     getQuoteData,
+    getAccordionTools,
 } from '@/lib/directus';
 import HomePageClient from '@/app/HomePageClient';
 import NavbarWrapper from '@/components/NavbarWrapper';
 
 export default async function HomePage() {
     // Fetch all data
-    const [blogPosts, faqSections, heroData, testimonials, features, layout, companyLogos, quoteData] = await Promise.all([
-        getBlogPosts(),
+    const [blogPosts, faqSections, heroData, testimonials, features, layout, companyLogos, quoteData, accordionTools] = await Promise.all([
+        getBlogPosts(6),
         getFAQSections(),
         getHomepageHero(),
         getTestimonials(),
@@ -22,6 +23,7 @@ export default async function HomePage() {
         getHomepageLayout(),
         getCompanyLogos(),
         getQuoteData(),
+        getAccordionTools(),
     ]);
 
     console.log('HomePage (new route group) data fetched successfully');
@@ -38,6 +40,7 @@ export default async function HomePage() {
                 layout={layout}
                 companyLogos={companyLogos}
                 quoteData={quoteData}
+                accordionTools={accordionTools}
             />
         </>
     );

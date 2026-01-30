@@ -133,7 +133,7 @@ export async function checkProfileCompleteness(): Promise<ProfileCompleteness> {
 /**
  * Validate LinkedIn URL format
  */
-export function validateLinkedInUrl(url: string): { isValid: boolean; error?: string } {
+export async function validateLinkedInUrl(url: string): Promise<{ isValid: boolean; error?: string }> {
     if (!url || url.trim() === '') {
         return { isValid: false, error: 'LinkedIn URL is verplicht' };
     }
@@ -157,7 +157,7 @@ export async function updateLinkedInUrl(url: string): Promise<{
     success: boolean;
     error?: string;
 }> {
-    const validation = validateLinkedInUrl(url);
+    const validation = await validateLinkedInUrl(url);
 
     if (!validation.isValid) {
         return { success: false, error: validation.error };

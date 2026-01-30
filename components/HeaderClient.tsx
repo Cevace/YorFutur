@@ -98,7 +98,7 @@ export default function HeaderClient({ isLoggedIn }: { isLoggedIn: boolean }) {
 
             {/* Mobile Navigation Overlay */}
             {isMobileMenuOpen && (
-                <div className={`md:hidden absolute top-full left-0 right-0 ${mobileMenuBg} shadow-lg p-4 flex flex-col space-y-4 ${mobileTextColor}`}>
+                <div className={`md:hidden absolute top-full left-0 right-0 bg-slate-900 bg-opacity-90 backdrop-blur-md shadow-lg p-4 flex flex-col space-y-4 text-white`}>
                     <Link href="/" className="block py-2 hover:text-cevace-orange" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
                     <Link href="/success-stories" className="block py-2 hover:text-cevace-orange" onClick={() => setIsMobileMenuOpen(false)}>Success Stories</Link>
                     <Link href="/about" className="block py-2 hover:text-cevace-orange" onClick={() => setIsMobileMenuOpen(false)}>Over ons</Link>

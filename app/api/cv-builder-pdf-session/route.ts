@@ -15,6 +15,7 @@ interface GeneratePDFRequest {
     cvData: CVData;
     template: TemplateId;
     accentColor: string;
+    font?: string;
     options?: {
         includeWatermark?: boolean;
         watermarkText?: string;
@@ -27,7 +28,7 @@ interface GeneratePDFRequest {
 export async function POST(request: NextRequest) {
     try {
         const body: GeneratePDFRequest = await request.json();
-        const { cvData, template, accentColor, options = {} } = body;
+        const { cvData, template, accentColor, font = 'inter', options = {} } = body;
 
         // Validate required fields
         if (!cvData || !template || !accentColor) {
@@ -54,7 +55,9 @@ export async function POST(request: NextRequest) {
             cvData,
             template,
             accentColor,
-            options);
+            options,
+            font
+        );
 
         console.log(`[Session API] Generated HTML length: ${htmlContent.length} characters`);
 

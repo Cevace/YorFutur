@@ -63,6 +63,18 @@ export interface SectionConfig {
     sectionTitle: string;
 }
 
+export interface AccordionTool {
+    id: string | number;
+    title: string;
+    subtitle: string;
+    description: string;
+    icon_class: string;
+    button_text: string;
+    button_url: string;
+    background_image: string | null;
+    sort: number;
+}
+
 export interface QuoteData {
     text: string;
     author: string;
@@ -148,14 +160,14 @@ export async function getHomepageHero(): Promise<HeroData> {
         ctaPrimaryText: data.cta_primary_text || defaults.ctaPrimaryText,
         ctaPrimaryLink: data.cta_primary_link || defaults.ctaPrimaryLink,
         ctaSecondaryText: data.cta_secondary_text || defaults.ctaSecondaryText,
-        heroImage: getDirectusImageUrl(data.hero_image) || defaults.heroImage,
+        heroImage: getDirectusImageUrl(data.hero_image ?? null) || defaults.heroImage,
         socialProofText: data.social_proof_text || defaults.socialProofText,
     };
 }
 
 
 // Blog Posts
-export async function getBlogPosts(): Promise<BlogPost[]> {
+export async function getBlogPosts(limit: number = 100): Promise<BlogPost[]> {
     const data = await fetchDirectus<Array<{
         id: number;
         title: string;
@@ -167,7 +179,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         published_date: string | null;
         published: boolean;
         content: string;
-    }>>('blog_posts?filter[published][_eq]=true&sort=-published_date&limit=6');
+    }>>(`blog_posts?filter[published][_eq]=true&sort=-published_date&limit=${limit}`);
 
     if (!data) return [];
 
@@ -261,6 +273,93 @@ export async function getFeatures(): Promise<Feature[]> {
     }));
 }
 
+// Accordion Tools
+export async function getAccordionTools(): Promise<AccordionTool[]> {
+    const mockData: AccordionTool[] = [
+        {
+            id: 1,
+            title: "AI CV Builder",
+            subtitle: "Optimize & Build",
+            description: "Create a professional, ATS-optimized CV in seconds with our advanced AI builder.",
+            icon_class: "fa-solid fa-file-invoice",
+            button_text: "Build CV",
+            button_url: "/dashboard/cv-builder",
+            background_image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80",
+            sort: 1
+        },
+        {
+            id: 2,
+            title: "Interview Trainer",
+            subtitle: "Practice Live",
+            description: "Simulate real interview scenarios with our AI coach and get instant feedback.",
+            icon_class: "fa-solid fa-microphone-lines",
+            button_text: "Start Practice",
+            button_url: "/dashboard/interview",
+            background_image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80",
+            sort: 2
+        },
+        {
+            id: 3,
+            title: "Motivation Generator",
+            subtitle: "Write Faster",
+            description: "Generate tailored motivation letters that match your style and the job description.",
+            icon_class: "fa-solid fa-pen-nib",
+            button_text: "Generate",
+            button_url: "/dashboard/motivation",
+            background_image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80",
+            sort: 3
+        },
+        {
+            id: 4,
+            title: "Vacancy Tracker",
+            subtitle: "Stay Organized",
+            description: "Keep track of all your applications in one smart dashboard. Never miss a deadline.",
+            icon_class: "fa-solid fa-list-check",
+            button_text: "Go to Tracker",
+            button_url: "/dashboard/tracker",
+            background_image: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80",
+            sort: 4
+        },
+        {
+            id: 5,
+            title: "LinkedIn Booster",
+            subtitle: "Enhance Profile",
+            description: "Get actionable insights to improve your LinkedIn profile and attract more recruiters.",
+            icon_class: "fa-brands fa-linkedin",
+            button_text: "Boost Profile",
+            button_url: "/dashboard/linkedin",
+            background_image: "https://images.unsplash.com/photo-1611944889171-4172665b072e?auto=format&fit=crop&q=80",
+            sort: 5
+        }
+    ];
+
+    const data = await fetchDirectus<Array<{
+        id: number;
+        title: string;
+        subtitle: string;
+        description: string;
+        icon_class: string;
+        button_text: string;
+        button_url: string;
+        background_image: string | null;
+        sort: number;
+    }>>('homepage_tools?sort=sort');
+
+    if (!data || data.length === 0) return mockData;
+
+    return data.map(t => ({
+        id: t.id,
+        title: t.title,
+        subtitle: t.subtitle || '',
+        description: t.description || '',
+        icon_class: t.icon_class || 'fa-solid fa-star',
+        button_text: t.button_text || 'Learn More',
+        button_url: t.button_url || '#',
+        background_image: getDirectusImageUrl(t.background_image),
+        sort: t.sort || 0
+    }));
+}
+
 // FAQ Sections
 export async function getFAQSections(): Promise<FAQSection[]> {
     // Get categories
@@ -307,6 +406,7 @@ export async function getHomepageLayout(): Promise<SectionConfig[]> {
     const defaults: SectionConfig[] = [
         { type: 'hero', enabled: true, sectionTitle: '' },
         { type: 'features', enabled: true, sectionTitle: 'Tools of the Trade.' },
+        { type: 'accordion', enabled: true, sectionTitle: 'Explore tools' },
         { type: 'testimonials', enabled: true, sectionTitle: 'Join the Elite.' },
         { type: 'blog', enabled: true, sectionTitle: 'Tips en informatie' },
         { type: 'faq', enabled: true, sectionTitle: 'Veelgestelde Vragen' },

@@ -6,13 +6,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
     Printer, Type, Palette, Layout,
-    AlertTriangle, CheckCircle2, Loader2, RefreshCcw, Link as LinkIcon
+    AlertTriangle, CheckCircle2, Loader2, RefreshCcw, Link as LinkIcon, Sparkles, RotateCw,
+    Mail, Phone, MapPin
 } from 'lucide-react';
 import type { CVData } from '@/actions/cv-builder';
-import type { TemplateId } from '@/types/cv-templates';
-import { getUserCVSettings } from '@/actions/cv-builder';
+import { type TemplateId, SUPPORTED_FONTS } from '@/types/cv-templates';
+import { getUserCVSettings, getCVData } from '@/actions/cv-builder';
 import TemplateLibraryModal from '@/components/cv-builder/TemplateLibraryModal';
 import ProfilePhotoUpload from '@/components/profile/ProfilePhotoUpload';
+import { addApplication } from '@/actions/tracker'; // Tracker Integration
+import ApplicationLoggedModal from '@/components/dashboard/ApplicationLoggedModal';
+
+// NEW: Fixed A4 Architecture - Single Source of Truth templates
+import { CVModernTemplate, CVPreviewScaler, CVModernPagedTemplate, CVContentMeasure } from '@/components/cv-templates';
+import { useCVPagination } from '@/hooks/useCVPagination';
 
 // --- MOCK API LOGICA ---
 const SIMULATE_API_DELAY = 1500;
@@ -77,8 +84,22 @@ const ScoreCircle = ({ score, scanning }: { score: number; scanning: boolean }) 
     );
 };
 
+// --- TYPES ---
+type TunerMetadata = {
+    vacancyTitle: string;
+    initialScore: number;
+    optimizedScore: number;
+    keywordsAdded: string[];
+    recommendedTemplate?: string;
+};
+
+type UltimateCVBuilderClientProps = {
+    initialData: CVData;
+    tunerData?: TunerMetadata | null;
+};
+
 // --- MAIN CLIENT COMPONENT ---
-export default function UltimateCVBuilderClient({ initialData }: { initialData: CVData }) {
+export default function UltimateCVBuilderClient({ initialData, tunerData }: UltimateCVBuilderClientProps) {
     const [data, setData] = useState(initialData);
     const [activeTab, setActiveTab] = useState('editor');
     const [isScanning, setIsScanning] = useState(false);
@@ -86,7 +107,10 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
     const [hasScanned, setHasScanned] = useState(false);
     const [isLoadingSettings, setIsLoadingSettings] = useState(true);
     const [accentColor, setAccentColor] = useState('#2563eb');
-    const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('modern');
+    const [selectedFont, setSelectedFont] = useState('inter');
+    const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>(
+        (tunerData?.recommendedTemplate as TemplateId) || 'modern'
+    );
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [photoUrl, setPhotoUrl] = useState<string | null>(initialData.personal.profilePhotoUrl || null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -97,23 +121,102 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
     const [downloadStatus, setDownloadStatus] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
     const [downloadUrl, setDownloadUrl] = useState('');
     const [downloadError, setDownloadError] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
     const [downloadFilename, setDownloadFilename] = useState('');
 
-    // Fetch user's CV settings on mount
+    // --- MEASUREMENT REF FOR PAGINATED LAYOUT ---
+    const measurementContainerRef = useRef<HTMLDivElement>(null);
+
+    // --- PAGINATED LAYOUT HOOK (for modern template) ---
+    const { pages: modernTemplatePages, totalPages: modernTotalPages, isReady: paginationReady } = useCVPagination(
+        data,
+        measurementContainerRef
+    );
+
+    // --- TRACKER INTEGRATION STATE ---
+    const [showTrackerModal, setShowTrackerModal] = useState(false);
+    const [trackedJob, setTrackedJob] = useState({ company: '', title: '' });
+
+    // --- AUTOSAVE LOGIC (Phase 5 - FIXED) ---
+    // Autosave is now only used WITHIN a session, not across page loads
+    // Fresh profile data from server takes priority over cached data
+    // Users can manually refresh to get latest profile changes
+
+    // Save to localStorage on every change (for in-session recovery only)
+    useEffect(() => {
+        if (data) {
+            localStorage.setItem('cv_builder_autosave', JSON.stringify(data));
+        }
+    }, [data]);
+
+    // Handler to refresh profile data from server
+    const handleRefreshProfile = async () => {
+        setIsRefreshing(true);
+        try {
+            const freshData = await getCVData();
+            setData(freshData);
+            setPhotoUrl(freshData.personal.profilePhotoUrl || null);
+            // Clear the autosave so it doesn't override on future loads
+            localStorage.removeItem('cv_builder_autosave');
+            console.log('Refreshed CV data from profile');
+        } catch (error) {
+            console.error('Failed to refresh profile data:', error);
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
     useEffect(() => {
         const loadSettings = async () => {
             const result = await getUserCVSettings();
             if (result.data) {
-                setSelectedTemplate(result.data.template_id as TemplateId);
-                setAccentColor(result.data.accent_color);
+                const settings = result.data as any; // Temporary cast to fix build error
+                setSelectedTemplate(settings.template_id as TemplateId);
+                setAccentColor(settings.accent_color);
+                if (settings.font) setSelectedFont(settings.font);
             }
             setIsLoadingSettings(false);
         };
         loadSettings();
     }, []);
 
-    // Detect page count based on content height - DEBOUNCED to prevent infinite loops
+    // Load Google Font in Client Preview
     useEffect(() => {
+        const font = SUPPORTED_FONTS.find(f => f.id === selectedFont);
+        if (!font || font.id === 'inter') return; // Inter is default
+
+        // Map ID to Google Font Name
+        const fontNames: Record<string, string> = {
+            'roboto': 'Roboto:wght@400;500;700',
+            'open-sans': 'Open+Sans:wght@400;600;700',
+            'lato': 'Lato:wght@400;700',
+            'merriweather': 'Merriweather:wght@400;700',
+            'playfair': 'Playfair+Display:wght@400;700',
+            'lora': 'Lora:wght@400;600;700'
+        };
+
+        const fontName = fontNames[selectedFont];
+        if (!fontName) return;
+
+        const link = document.createElement('link');
+        link.href = `https://fonts.googleapis.com/css2?family=${fontName}&display=swap`;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+
+        return () => {
+            document.head.removeChild(link);
+        };
+    }, [selectedFont]);
+
+    // Detect page count based on content height - uses hook for modern template
+    useEffect(() => {
+        // For modern template, use the paginated hook result
+        if (selectedTemplate === 'modern' && paginationReady) {
+            setTotalPages(modernTotalPages);
+            return;
+        }
+
+        // For other templates, use DOM-based height calculation
         let timeoutId: NodeJS.Timeout;
 
         const detectPages = () => {
@@ -136,7 +239,7 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
             clearTimeout(timeoutId);
             window.removeEventListener('resize', detectPages);
         };
-    }, [data, selectedTemplate, accentColor]);
+    }, [data, selectedTemplate, accentColor, selectedFont, paginationReady, modernTotalPages]);
 
     // Calculate scale to fit CV in viewport - IMPROVED for no-scroll experience
     useEffect(() => {
@@ -227,11 +330,11 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
                     cvData: data,
                     template: selectedTemplate,
                     accentColor: accentColor,
+                    font: selectedFont,
                     options: {
-                        includeWatermark: true,
-                        watermarkText: 'Cevace',
-                        customFooter: 'Gegenereerd met Cevace - cevace.nl',
-                        pageNumbers: true,
+                        includeWatermark: false,  // Disabled: no Cevace branding
+                        // customFooter removed - no Cevace branding
+                        pageNumbers: false,
                         sections: {
                             summary: true,
                             experience: true,
@@ -308,71 +411,92 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
     };
 
     const renderModernLayout = () => (
-        <div className="flex flex-col md:flex-row bg-white">
-            <div className="w-full md:w-1/3 p-8 pb-20 text-white print:bg-blue-600 relative" style={{ backgroundColor: accentColor, WebkitPrintColorAdjust: 'exact' }}>
-                <h1 className="font-bold leading-tight mb-2 whitespace-nowrap overflow-hidden text-ellipsis" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>{data.personal.fullName}</h1>
-                <p className="text-white/80 font-medium uppercase tracking-wider text-sm mb-8">{data.personal.jobTitle}</p>
+        <div className="flex flex-col md:flex-row bg-white h-full">
+            {/* Fixed Sidebar Background for Print - Ensures color on all pages */}
+            <div className="hidden print:block fixed top-0 left-0 bottom-0 w-1/3 z-[-1]" style={{ backgroundColor: accentColor, WebkitPrintColorAdjust: 'exact' }} />
 
-                {/* QR Code Section */}
-                {data.personal.liveCvUrl && (
-                    <div className="mb-6 flex justify-end">
-                        <div className="bg-white p-2 rounded" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                            <QRCodeSVG
-                                value={data.personal.liveCvUrl}
-                                size={40}
-                                level="M"
-                            />
-                            <p className="text-xs text-center mt-1 text-gray-600">Scan voor online CV</p>
-                        </div>
-                    </div>
-                )}
+            {/* Left Sidebar */}
+            <div className="w-full md:w-1/3 pl-[20mm] pr-[5mm] pt-[20mm] pb-[20mm] text-white print:bg-transparent relative flex flex-col min-h-full" style={{ backgroundColor: accentColor, WebkitPrintColorAdjust: 'exact' }}>
+                <h1 className="font-bold leading-tight mb-2 break-words" style={{ fontSize: '32px' }}>{data.personal.fullName}</h1>
+                <p className="text-white/80 font-medium uppercase tracking-widest text-sm mb-8">{data.personal.jobTitle}</p>
 
-                <div className="space-y-4 mb-8 opacity-90" style={{ fontSize: '14px', lineHeight: '1.45' }}>
-                    <p>{data.personal.email}</p>
-                    <p>{data.personal.phone}</p>
-                    <p>{data.personal.address}</p>
+                <div className="space-y-2 mb-8 text-sm font-medium opacity-90 leading-relaxed">
+                    <p className="flex items-center gap-3">
+                        <Mail size={16} className="opacity-70 flex-shrink-0" /> {data.personal.email}
+                    </p>
+                    <p className="flex items-center gap-3">
+                        <Phone size={16} className="opacity-70 flex-shrink-0" /> {data.personal.phone}
+                    </p>
+                    <p className="flex items-center gap-3">
+                        <MapPin size={16} className="opacity-70 flex-shrink-0" /> {data.personal.address}
+                    </p>
                 </div>
-                <h3 className="font-bold border-b border-white/30 pb-2 mb-4 uppercase" style={{ fontSize: '18px' }}>Vaardigheden</h3>
-                <div className="flex flex-wrap gap-2">
+
+                <h3 className="font-bold border-b border-white/30 pb-3 mb-4 uppercase tracking-widest" style={{ fontSize: '16px' }}>Vaardigheden</h3>
+                <div className="flex flex-wrap leading-relaxed text-sm font-medium opacity-90 mb-8">
                     {data.skills.map((skill, i) => (
-                        <span key={i} className="bg-white/20 px-2 py-1 rounded" style={{ fontSize: '14px' }}>{skill}</span>
+                        <span key={i}>
+                            {skill}
+                            {i < data.skills.length - 1 && <span className="mr-1">,</span>}
+                        </span>
                     ))}
                 </div>
 
                 {/* Languages Section */}
                 {data.languages && data.languages.length > 0 && (
-                    <>
-                        <h3 className="font-bold border-b border-white/30 pb-2 mb-4 uppercase mt-8" style={{ fontSize: '18px' }}>
+                    <div className="mb-8">
+                        <h3 className="font-bold border-b border-white/30 pb-3 mb-4 uppercase tracking-widest" style={{ fontSize: '16px' }}>
                             Talen
                         </h3>
                         <div className="space-y-2">
                             {data.languages.map((lang, i) => (
-                                <div key={i} className="flex justify-between items-center">
-                                    <span style={{ fontSize: '14px' }}>{lang.language}</span>
-                                    <span className="text-xs opacity-70">{lang.proficiency}</span>
+                                <div key={i} className="flex justify-between items-center text-sm">
+                                    <span className="font-medium">{lang.language}</span>
+                                    <span className="opacity-70 text-xs">{lang.proficiency}</span>
                                 </div>
                             ))}
                         </div>
-                    </>
+                    </div>
+                )}
+
+                {/* QR Code Section - Moved to Bottom */}
+                {data.personal.liveCvUrl && (
+                    <div className="mt-auto pt-4">
+                        <div className="bg-white p-2 rounded-lg inline-block" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                            <QRCodeSVG
+                                value={data.personal.liveCvUrl}
+                                size={70}
+                                level="M"
+                            />
+                        </div>
+                        <p className="text-[10px] mt-2 opacity-80 uppercase tracking-wider font-semibold">Scan voor Live CV</p>
+                    </div>
                 )}
             </div>
-            <div className="w-full md:w-2/3 p-8">
-                <div className="mb-8">
-                    <h3 className="font-bold uppercase tracking-wider mb-2 text-gray-800" style={{ color: accentColor, fontSize: '20px' }}>Profiel</h3>
-                    <p className="text-gray-700" style={{ fontSize: '14px', lineHeight: '1.45' }}>{data.personal.summary}</p>
+
+            {/* Right Content */}
+            <div className="w-full md:w-2/3 pl-[10mm] pr-[20mm] pt-[20mm] pb-[20mm]">
+                <div className="mb-10">
+                    <h3 className="font-bold uppercase tracking-widest mb-4 pb-2 border-b-2 text-gray-900" style={{ borderColor: accentColor, color: accentColor, fontSize: '18px' }}>Profiel</h3>
+                    <p className="text-gray-700 leading-relaxed text-justify" style={{ fontSize: '15px' }}>{data.personal.summary}</p>
                 </div>
-                <div className="mb-8">
-                    <h3 className="font-bold uppercase tracking-wider mb-4 text-gray-800" style={{ color: accentColor, fontSize: '20px' }}>Werkervaring</h3>
+
+                <div className="mb-10">
+                    <h3 className="font-bold uppercase tracking-widest mb-6 pb-2 border-b-2 text-gray-900" style={{ borderColor: accentColor, color: accentColor, fontSize: '18px' }}>Werkervaring</h3>
                     {data.experience.map(exp => (
-                        <div key={exp.id} className="mb-6">
-                            <div className="flex justify-between items-baseline mb-1">
-                                <h4 className="font-bold text-gray-900" style={{ fontSize: '18px' }}>{exp.role}</h4>
-                                <span className="text-gray-500 text-sm font-semibold">{exp.start} - {exp.end}</span>
+                        <div key={exp.id} className="mb-8 relative pl-4 border-l-2 border-gray-100">
+                            <div className="mb-2">
+                                <h4 className="font-bold text-gray-900 text-lg leading-none mb-1">{exp.role}</h4>
+                                <div className="text-gray-500 font-medium text-sm">
+                                    <span className="text-gray-800">{exp.company}</span>
+                                    <span className="mx-2">•</span>
+                                    <span>{exp.start} - {exp.end}</span>
+                                </div>
                             </div>
-                            <div className="text-gray-600 font-semibold mb-2" style={{ fontSize: '14px' }}>{exp.company}</div>
+                            {/* Render Description with proper HTML handling */}
                             <div
-                                className="text-gray-700 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_strong]:font-bold [&_em]:italic"
-                                style={{ fontSize: '14px', lineHeight: '1.45' }}
+                                className="text-gray-700 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_strong]:font-bold [&_em]:italic [&_p]:mb-2"
+                                style={{ fontSize: '14px', lineHeight: '1.6' }}
                                 dangerouslySetInnerHTML={{ __html: exp.description }}
                             />
                         </div>
@@ -381,18 +505,20 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
 
                 {/* Education Section */}
                 {data.education && data.education.length > 0 && (
-                    <div className="mb-8">
-                        <h3 className="font-bold uppercase tracking-wider mb-4 text-gray-800" style={{ color: accentColor, fontSize: '20px' }}>
+                    <div className="mb-10">
+                        <h3 className="font-bold uppercase tracking-widest mb-6 pb-2 border-b-2 text-gray-900" style={{ borderColor: accentColor, color: accentColor, fontSize: '18px' }}>
                             Opleidingen
                         </h3>
                         {data.education.map(edu => (
-                            <div key={edu.id} className="mb-6">
-                                <h4 className="font-bold text-gray-900" style={{ fontSize: '18px' }}>{edu.degree}</h4>
-                                <div className="text-gray-500 font-semibold mb-2" style={{ fontSize: '14px' }}>
-                                    {edu.school} | {edu.start} - {edu.end}
+                            <div key={edu.id} className="mb-6 relative pl-4 border-l-2 border-gray-100">
+                                <h4 className="font-bold text-gray-900 text-lg leading-none mb-1">{edu.degree}</h4>
+                                <div className="text-gray-500 font-medium text-sm mb-2">
+                                    {edu.school}
+                                    <span className="mx-2">•</span>
+                                    {edu.start} - {edu.end}
                                 </div>
                                 {edu.description && (
-                                    <p className="text-gray-700" style={{ fontSize: '14px', lineHeight: '1.45' }}>
+                                    <p className="text-gray-600 mt-1" style={{ fontSize: '14px', lineHeight: '1.5' }}>
                                         {edu.description}
                                     </p>
                                 )}
@@ -400,25 +526,17 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
                         ))}
                     </div>
                 )}
-
-                {/* QR Code Footer */}
-                {data.personal.liveCvUrl && (
-                    <div className="mt-auto pt-6 border-t border-gray-200">
-                        <div className="flex items-center gap-3">
-                            <QRCodeSVG value={data.personal.liveCvUrl} size={60} />
-                            <p className="text-sm text-gray-600">Scan voor online CV</p>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );
+
+
 
     // Classic Sidebar Layout (Purple) - Template from uploaded_image_0
     const renderClassicSidebarLayout = () => (
         <div className="flex h-[297mm] bg-white">
             {/* Left Sidebar - 30% */}
-            <div className="w-[30%] p-8 pb-20 text-white print:bg-purple-800 h-full" style={{ backgroundColor: accentColor, WebkitPrintColorAdjust: 'exact' }}>
+            <div className="w-[30%] px-8 pt-[25mm] pb-[25mm] text-white print:bg-purple-800 h-full" style={{ backgroundColor: accentColor, WebkitPrintColorAdjust: 'exact' }}>
                 {/* Photo */}
                 {photoUrl && (
                     <div className="mb-6 flex justify-center">
@@ -484,12 +602,37 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
             </div>
 
             {/* Right Content - 70% */}
-            <div className="w-[70%] p-8">
+            <div className="w-[70%] px-8 pt-[25mm] pb-[25mm]">
                 <h1 className="font-bold text-4xl mb-2" style={{ color: accentColor }}>{data.personal.fullName}</h1>
 
                 <section className="mb-6">
                     <h3 className="font-bold uppercase tracking-wider mb-3" style={{ color: accentColor, fontSize: '20px' }}>Profiel</h3>
                     <p className="text-gray-700 text-sm leading-relaxed">{data.personal.summary}</p>
+                </section>
+
+                <section className="mb-6">
+                    <h3 className="font-bold uppercase tracking-wider mb-3" style={{ color: accentColor, fontSize: '20px' }}>Werkervaring</h3>
+                    {data.experience.map(exp => (
+                        <div key={exp.id} className="mb-4">
+                            <p className="font-bold text-gray-900 text-sm mb-1">{exp.role}</p>
+                            <div className="flex justify-between items-baseline mb-1">
+                                <p className="text-sm text-gray-600">{exp.company}, {exp.city}</p>
+                                <span className="text-gray-500 text-xs font-semibold">{exp.start} - {exp.end}</span>
+                            </div>
+                            <ul className="list-disc pl-5 space-y-1 text-gray-700" style={{ fontSize: '14px', lineHeight: '1.6' }}>
+                                {exp.description
+                                    .split(/[\.\n]/)
+                                    .map(s => s.trim())
+                                    .filter(s => s.length > 0)
+                                    .map((bullet, idx) => (
+                                        <li key={idx}>
+                                            {bullet}
+                                            {/[a-zA-Z0-9]$/.test(bullet) ? '.' : ''}
+                                        </li>
+                                    ))}
+                            </ul>
+                        </div>
+                    ))}
                 </section>
 
                 {data.education && data.education.length > 0 && (
@@ -504,23 +647,6 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
                         ))}
                     </section>
                 )}
-
-                <section className="mb-6">
-                    <h3 className="font-bold uppercase tracking-wider mb-3" style={{ color: accentColor, fontSize: '20px' }}>Werkervaring</h3>
-                    {data.experience.map(exp => (
-                        <div key={exp.id} className="mb-4">
-                            <p className="font-bold text-gray-900 text-sm mb-1">{exp.role}</p>
-                            <div className="flex justify-between items-baseline mb-1">
-                                <p className="text-sm text-gray-600">{exp.company}, {exp.city}</p>
-                                <span className="text-gray-500 text-xs font-semibold">{exp.start} - {exp.end}</span>
-                            </div>
-                            <div
-                                className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_strong]:font-bold [&_em]:italic"
-                                dangerouslySetInnerHTML={{ __html: exp.description }}
-                            />
-                        </div>
-                    ))}
-                </section>
 
 
             </div>
@@ -774,23 +900,54 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
         </div>
     );
 
-    // Template Switcher
+    // Template Switcher - Uses Fixed A4 Architecture components
     const renderSelectedTemplate = () => {
         switch (selectedTemplate) {
             case 'classic-sidebar':
+                // LEGACY: Still using old renderer until migrated
                 return renderClassicSidebarLayout();
             case 'modern-header':
+                // LEGACY: Still using old renderer until migrated
                 return renderModernHeaderLayout();
             case 'photo-focus':
+                // LEGACY: Still using old renderer until migrated
                 return renderPhotoFocusLayout();
             case 'modern':
             default:
-                return renderModernLayout();
+                // NEW: Fixed A4 Architecture - Single Source of Truth
+                return (
+                    <CVModernTemplate
+                        data={data}
+                        accentColor={accentColor}
+                        font={selectedFont}
+                        showQRCode={!!data.personal.liveCvUrl}
+                    />
+                );
         }
     };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+            {/* Tuner Optimization Badge */}
+            {tunerData && (
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-4 print:hidden">
+                    <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-3">
+                            <Sparkles size={24} className="flex-shrink-0" />
+                            <div>
+                                <p className="font-bold text-lg">✨ Geoptimaliseerd met CV Tuner</p>
+                                <p className="text-sm opacity-90">
+                                    Vacature: {tunerData.vacancyTitle} | ATS Score: {tunerData.initialScore}% → {tunerData.optimizedScore}%
+                                </p>
+                            </div>
+                        </div>
+                        <div className="text-sm bg-white/20 px-4 py-2 rounded-lg font-semibold">
+                            +{tunerData.keywordsAdded.length} keywords toegevoegd
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Download Overlay (Canva style) */}
             {isExporting && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
@@ -822,6 +979,12 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
                                         Download {downloadFilename || 'CV'}
                                     </a>
                                 </div>
+                                <button
+                                    onClick={() => { setIsExporting(false); setDownloadStatus('idle'); }}
+                                    className="inline-flex items-center justify-center w-full px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors mt-2"
+                                >
+                                    Sluiten
+                                </button>
                             </>
                         )}
                         {downloadStatus === 'error' && (
@@ -847,6 +1010,15 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
                     <Image src="/logo/Cevace-wit-logo.svg" alt="Cevace" width={120} height={30} className="h-8 w-auto" />
                 </Link>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleRefreshProfile}
+                        disabled={isRefreshing}
+                        className="hidden md:flex items-center gap-2 text-sm font-medium text-white/70 hover:text-green-400 transition-colors disabled:opacity-50"
+                        title="Laad verse profielgegevens"
+                    >
+                        <RotateCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+                        {isRefreshing ? 'Laden...' : 'Verversen'}
+                    </button>
                     <button onClick={runFullAudit} className="hidden md:flex items-center gap-2 text-sm font-medium text-white/70 hover:text-[#F97316] transition-colors"><RefreshCcw size={16} /> Scan</button>
                     <button
                         onClick={handleDownloadPDF}
@@ -976,6 +1148,28 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
                         {activeTab === 'design' && (
                             <div className="space-y-6">
                                 <div><h3 className="font-bold text-gray-700 mb-2">Kleur</h3><div className="flex gap-2">{['#2563eb', '#16a34a', '#dc2626', '#9333ea', '#ea580c'].map(c => (<button key={c} onClick={() => setAccentColor(c)} className={`w-8 h-8 rounded-full border-2 ${accentColor === c ? 'border-gray-400' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></div>
+
+                                <div className="pt-4 border-t border-gray-200">
+                                    <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        <Type size={16} /> Lettertype
+                                    </h3>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {SUPPORTED_FONTS.map((font) => (
+                                            <button
+                                                key={font.id}
+                                                onClick={() => setSelectedFont(font.id)}
+                                                className={`px-3 py-3 text-sm text-left border rounded-lg transition-all flex justify-between items-center ${selectedFont === font.id
+                                                    ? 'border-orange-500 bg-orange-50 ring-1 ring-orange-200'
+                                                    : 'border-gray-200 hover:border-orange-300 hover:bg-gray-50'
+                                                    }`}
+                                                style={{ fontFamily: font.family }}
+                                            >
+                                                <span className="font-medium">{font.name}</span>
+                                                {selectedFont === font.id && <CheckCircle2 size={16} className="text-orange-500" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -1059,119 +1253,95 @@ export default function UltimateCVBuilderClient({ initialData }: { initialData: 
                     {/* Carousel Preview Container */}
                     <div className="print-container flex flex-col h-full">
                         {/* Page Warning */}
-                        {totalPages > 2 && (
-                            <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg flex items-center gap-2">
-                                <AlertTriangle size={18} className="text-orange-600" />
-                                <p className="text-sm text-orange-700">
-                                    <strong>Let op:</strong> Je CV heeft {totalPages} pagina's. Maximum 2 pagina's wordt aanbevolen.
-                                </p>
-                            </div>
-                        )}
+
 
                         {/* CV Carousel - No scrolling, viewport-fitted */}
-                        <div className="flex-1 relative overflow-hidden rounded-lg cv-preview-container" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                        <div
+                            className="flex-1 relative overflow-hidden rounded-lg cv-preview-container"
+                            style={{
+                                maxHeight: 'calc(100vh - 200px)',
+                                fontFamily: SUPPORTED_FONTS.find(f => f.id === selectedFont)?.family || 'Inter, sans-serif'
+                            }}
+                        >
+                            {/* Hidden measurement container for block heights */}
+                            <CVContentMeasure
+                                ref={measurementContainerRef}
+                                data={data}
+                                accentColor={accentColor}
+                                font={selectedFont}
+                            />
+
                             <div
                                 className="flex transition-transform duration-500 ease-in-out h-full"
                                 style={{ transform: `translateX(-${(currentPage - 1) * 100}%)` }}
                             >
-                                {/* Page 1 */}
-                                <div className="min-w-full flex items-center justify-center p-4">
-                                    <div
-                                        ref={cvPreviewRef}
-                                        id="cv-preview"
-                                        className="w-[210mm] h-[297mm] print:shadow-none bg-white overflow-hidden"
-                                        style={{
-                                            transform: `scale(${cvScale})`,
-                                            transformOrigin: 'center center',
-                                            transition: 'transform 0.2s ease-out'
-                                        }}
-                                    >
-                                        {renderSelectedTemplate()}
+                                {/* Modern template: Render all pages using new paginated system */}
+                                {selectedTemplate === 'modern' && paginationReady && modernTemplatePages.map((pageLayout, pageIndex) => (
+                                    <div key={pageLayout.pageNumber} className="min-w-full flex items-center justify-center p-4">
+                                        <div
+                                            ref={pageIndex === 0 ? cvPreviewRef : undefined}
+                                            id={pageIndex === 0 ? "cv-preview" : undefined}
+                                            className="w-[210mm] h-[297mm] print:shadow-none bg-white overflow-hidden"
+                                            style={{
+                                                transform: `scale(${cvScale})`,
+                                                transformOrigin: 'center center',
+                                                transition: 'transform 0.2s ease-out'
+                                            }}
+                                        >
+                                            <CVModernPagedTemplate
+                                                data={data}
+                                                accentColor={accentColor}
+                                                font={selectedFont}
+                                                showQRCode={true}
+                                                pageLayout={pageLayout}
+                                                isFirstPage={pageIndex === 0}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                ))}
 
-                                {/* Page 2+ render actual overflow content with sidebars */}
-                                {totalPages >= 2 && Array.from({ length: totalPages - 1 }).map((_, pageIndex) => {
+                                {/* Modern template: Show loading state while pagination calculates */}
+                                {selectedTemplate === 'modern' && !paginationReady && (
+                                    <div className="min-w-full flex items-center justify-center p-4">
+                                        <div
+                                            ref={cvPreviewRef}
+                                            id="cv-preview"
+                                            className="w-[210mm] h-[297mm] print:shadow-none bg-white overflow-hidden"
+                                            style={{
+                                                transform: `scale(${cvScale})`,
+                                                transformOrigin: 'center center',
+                                                transition: 'transform 0.2s ease-out'
+                                            }}
+                                        >
+                                            {renderSelectedTemplate()}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Other templates: Page 1 */}
+                                {selectedTemplate !== 'modern' && (
+                                    <div className="min-w-full flex items-center justify-center p-4">
+                                        <div
+                                            ref={cvPreviewRef}
+                                            id="cv-preview"
+                                            className="w-[210mm] h-[297mm] print:shadow-none bg-white overflow-hidden"
+                                            style={{
+                                                transform: `scale(${cvScale})`,
+                                                transformOrigin: 'center center',
+                                                transition: 'transform 0.2s ease-out'
+                                            }}
+                                        >
+                                            {renderSelectedTemplate()}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Other templates: Page 2+ render with translateY offset */}
+                                {selectedTemplate !== 'modern' && totalPages >= 2 && Array.from({ length: totalPages - 1 }).map((_, pageIndex) => {
                                     const pageNum = pageIndex + 2;
                                     const offsetMm = (pageIndex + 1) * 297;
 
-                                    // Render based on selected template - showing only continuing content on pages 2+
-                                    if (selectedTemplate === 'modern') {
-                                        return (
-                                            <div key={pageNum} className="min-w-full flex items-center justify-center p-4">
-                                                <div className="w-[210mm] h-[297mm] bg-white overflow-hidden relative"
-                                                    style={{
-                                                        transform: `scale(${cvScale})`,
-                                                        transformOrigin: 'center center',
-                                                        transition: 'transform 0.2s ease-out'
-                                                    }}>
-                                                    <div className="absolute inset-0" style={{ transform: `translateY(-${offsetMm}mm)` }}>
-                                                        {/* Render exact same template as page 1 */}
-                                                        <div className="flex bg-white">
-                                                            {/* Left Sidebar - empty colored bar matching page 1 */}
-                                                            <div className="w-1/3 text-white print:bg-purple-800" style={{ backgroundColor: accentColor, WebkitPrintColorAdjust: 'exact' }}>
-                                                                {/* Empty - content is only on page 1 */}
-                                                            </div>
-                                                            {/* Right Content - continuing from page 1 */}
-                                                            <div className="w-2/3 p-8">
-                                                                {/* Profile */}
-                                                                <div className="mb-8">
-                                                                    <h3 className="font-bold uppercase tracking-wider mb-4 text-gray-800" style={{ color: accentColor, fontSize: '20px' }}>
-                                                                        Profiel
-                                                                    </h3>
-                                                                    <p className="text-gray-700 leading-relaxed" style={{ fontSize: '14px', lineHeight: '1.45' }}>
-                                                                        {data.personal.summary}
-                                                                    </p>
-                                                                </div>
-
-                                                                {/* Work Experience */}
-                                                                <div className="mb-8">
-                                                                    <h3 className="font-bold uppercase tracking-wider mb-4 text-gray-800" style={{ color: accentColor, fontSize: '20px' }}>
-                                                                        Werkervaring
-                                                                    </h3>
-                                                                    {data.experience.map(exp => (
-                                                                        <div key={exp.id} className="mb-6">
-                                                                            <h4 className="font-bold text-gray-900" style={{ fontSize: '18px' }}>{exp.role}</h4>
-                                                                            <div className="text-gray-500 font-semibold mb-2" style={{ fontSize: '14px' }}>
-                                                                                {exp.company} | {exp.start} - {exp.end}
-                                                                            </div>
-                                                                            <div
-                                                                                className="text-gray-700 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_strong]:font-bold [&_em]:italic"
-                                                                                style={{ fontSize: '14px', lineHeight: '1.45' }}
-                                                                                dangerouslySetInnerHTML={{ __html: exp.description }}
-                                                                            />
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-
-                                                                {/* Education */}
-                                                                {data.education && data.education.length > 0 && (
-                                                                    <div className="mb-8">
-                                                                        <h3 className="font-bold uppercase tracking-wider mb-4 text-gray-800" style={{ color: accentColor, fontSize: '20px' }}>
-                                                                            Opleidingen
-                                                                        </h3>
-                                                                        {data.education.map(edu => (
-                                                                            <div key={edu.id} className="mb-6">
-                                                                                <h4 className="font-bold text-gray-900" style={{ fontSize: '18px' }}>{edu.degree}</h4>
-                                                                                <div className="text-gray-500 font-semibold mb-2" style={{ fontSize: '14px' }}>
-                                                                                    {edu.school} | {edu.start} - {edu.end}
-                                                                                </div>
-                                                                                {edu.description && (
-                                                                                    <p className="text-gray-700" style={{ fontSize: '14px', lineHeight: '1.45' }}>
-                                                                                        {edu.description}
-                                                                                    </p>
-                                                                                )}
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    } else if (selectedTemplate === 'classic-sidebar') {
+                                    if (selectedTemplate === 'classic-sidebar') {
                                         return (
                                             <div key={pageNum} className="min-w-full flex items-center justify-center p-4">
                                                 <div className="w-[210mm] h-[297mm] bg-white overflow-hidden relative"

@@ -17,7 +17,27 @@ export interface CVTemplate {
 export interface CVSettings {
     templateId: TemplateId;
     accentColor: string;
+    font: string;
 }
+
+export type CVFont = {
+    id: string;
+    name: string;
+    family: string;
+    type: 'sans' | 'serif';
+};
+
+export const SUPPORTED_FONTS: CVFont[] = [
+    // Sans Serif
+    { id: 'inter', name: 'Inter (Standaard)', family: "'Inter', sans-serif", type: 'sans' },
+    { id: 'roboto', name: 'Roboto', family: "'Roboto', sans-serif", type: 'sans' },
+    { id: 'open-sans', name: 'Open Sans', family: "'Open Sans', sans-serif", type: 'sans' },
+    { id: 'lato', name: 'Lato', family: "'Lato', sans-serif", type: 'sans' },
+    // Serif
+    { id: 'merriweather', name: 'Merriweather', family: "'Merriweather', serif", type: 'serif' },
+    { id: 'playfair', name: 'Playfair Display', family: "'Playfair Display', serif", type: 'serif' },
+    { id: 'lora', name: 'Lora', family: "'Lora', serif", type: 'serif' },
+];
 
 /**
  * Registry of all available CV templates

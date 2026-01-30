@@ -49,121 +49,119 @@ export default function Navbar({ theme = 'light', isLoggedIn = false }: NavbarPr
     const mobileTextColor = isDark ? 'text-white' : 'text-gray-900';
 
     return (
-        <>
-            <header
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerClass}`}
-            >
-                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-                    {/* Logo */}
-                    <Link href="/" className="block">
-                        <Image
-                            src={logoSrc}
-                            alt="Cevace"
-                            width={132}
-                            height={35}
-                            className="h-9 w-auto"
-                            priority
-                        />
-                    </Link>
+        <header
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerClass}`}
+        >
+            <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+                {/* Logo */}
+                <Link href="/" className="block">
+                    <Image
+                        src={logoSrc}
+                        alt="Cevace"
+                        width={132}
+                        height={35}
+                        className="h-9 w-auto"
+                        priority
+                    />
+                </Link>
 
-                    {/* Desktop Navigation - Right aligned */}
-                    <nav className="hidden md:flex items-center gap-8">
-                        <ul className={`flex items-center gap-8 text-base font-medium ${textColor}`}>
-                            {NAV_LINKS.map(link => (
-                                <li key={link.name}>
-                                    <Link
-                                        href={link.href}
-                                        className={`${hoverColor} transition-colors py-2`}
-                                    >
-                                        {link.name}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
+                {/* Desktop Navigation - Right aligned */}
+                <nav className="hidden md:flex items-center gap-8">
+                    <ul className={`flex items-center gap-8 text-base font-medium ${textColor}`}>
+                        {NAV_LINKS.map(link => (
+                            <li key={link.name}>
+                                <Link
+                                    href={link.href}
+                                    className={`${hoverColor} transition-colors py-2`}
+                                >
+                                    {link.name}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
 
-                        {/* CTA Buttons */}
-                        {isLoggedIn ? (
+                    {/* CTA Buttons */}
+                    {isLoggedIn ? (
+                        <Link
+                            href="/dashboard"
+                            className="flex items-center gap-2 bg-[#d97706] px-5 py-2 rounded-full text-white font-medium text-base hover:bg-orange-600 transition-colors"
+                        >
+                            <User size={18} />
+                            <span>Dashboard</span>
+                        </Link>
+                    ) : (
+                        <div className="flex items-center gap-4">
                             <Link
-                                href="/dashboard"
-                                className="flex items-center gap-2 bg-[#d97706] px-5 py-2 rounded-full text-white font-medium text-base hover:bg-orange-600 transition-colors"
+                                href="/login"
+                                className={`text-base font-medium ${textColor} ${hoverColor} transition-colors`}
                             >
-                                <User size={18} />
-                                <span>Dashboard</span>
+                                Inloggen
                             </Link>
-                        ) : (
-                            <div className="flex items-center gap-4">
-                                <Link
-                                    href="/login"
-                                    className={`text-base font-medium ${textColor} ${hoverColor} transition-colors`}
-                                >
-                                    Inloggen
-                                </Link>
-                                <Link
-                                    href="/login"
-                                    className="bg-[#d97706] px-5 py-2 rounded-full text-white font-medium text-base hover:bg-orange-600 transition-colors"
-                                >
-                                    Aanmelden
-                                </Link>
-                            </div>
-                        )}
-                    </nav>
+                            <Link
+                                href="/login"
+                                className="bg-[#d97706] px-5 py-2 rounded-full text-white font-medium text-base hover:bg-orange-600 transition-colors"
+                            >
+                                Aanmelden
+                            </Link>
+                        </div>
+                    )}
+                </nav>
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        className={`md:hidden p-2 ${isDark ? 'text-white' : 'text-gray-900'}`}
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        aria-label="Toggle menu"
-                    >
-                        {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-                    </button>
-                </div>
-            </header>
+                {/* Mobile Menu Button */}
+                <button
+                    className={`md:hidden p-2 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    aria-label="Toggle menu"
+                >
+                    {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                </button>
+            </div>
 
-            {/* Mobile Navigation Overlay */}
+            {/* Mobile Navigation Overlay - Compact Dropdown */}
             {isMobileMenuOpen && (
-                <div className={`fixed inset-0 z-[60] ${mobileMenuBg} flex flex-col items-center justify-center space-y-8 ${mobileTextColor}`}>
+                <div className="md:hidden absolute top-full left-0 right-0 bg-slate-900 bg-opacity-90 backdrop-blur-md shadow-lg p-6 flex flex-col space-y-4 text-white z-[60]">
                     {NAV_LINKS.map(link => (
                         <Link
                             key={link.name}
                             href={link.href}
-                            className="text-2xl font-semibold hover:text-[#d97706] transition-colors"
+                            className="text-lg font-medium hover:text-orange-600 transition-colors py-1"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             {link.name}
                         </Link>
                     ))}
 
-                    <div className="h-px w-20 bg-current opacity-10 my-4"></div>
+                    <div className="h-px w-full bg-white/20 my-2"></div>
 
                     {isLoggedIn ? (
                         <Link
                             href="/dashboard"
-                            className="flex items-center gap-2 bg-[#d97706] text-white px-8 py-3 rounded-full font-bold text-lg"
+                            className="flex items-center gap-2 bg-orange-600 text-white px-6 py-2 rounded-full font-semibold text-base w-fit"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
-                            <User size={20} />
+                            <User size={18} />
                             Dashboard
                         </Link>
                     ) : (
-                        <>
+                        <div className="flex flex-col gap-3">
                             <Link
                                 href="/login"
-                                className="bg-[#d97706] text-white px-8 py-3 rounded-full font-bold text-lg"
+                                className="bg-orange-600 text-white px-6 py-2 rounded-full font-semibold text-base text-center"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 Aanmelden
                             </Link>
                             <Link
                                 href="/login"
-                                className="font-medium opacity-70 hover:opacity-100 transition-opacity"
+                                className="font-medium text-white/70 hover:text-white transition-colors text-center"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 Inloggen
                             </Link>
-                        </>
+                        </div>
                     )}
                 </div>
             )}
-        </>
+        </header>
     );
 }

@@ -14,16 +14,16 @@ export default function PowerScoreCard({ initialScore, optimizedScore, keywordsA
     const improvementPercent = Math.round(improvement);
 
     return (
-        <div className="bg-gradient-to-br from-blue-50 to-orange-50 rounded-xl p-8 border border-blue-100 shadow-lg">
+        <div className="bg-white rounded-xl p-8 border border-gray-100 shadow-lg">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                Power Score Analyse
+                Power score analyse
             </h3>
 
             {/* Before/After Comparison */}
             <div className="grid grid-cols-3 gap-6 mb-8">
                 {/* Old Score */}
                 <div className="bg-white rounded-lg p-6 text-center shadow-sm">
-                    <p className="text-sm text-gray-500 mb-2 font-medium">Oude Score</p>
+                    <p className="text-[16px] text-gray-500 mb-2 font-medium">Oude score</p>
                     <p className="text-4xl font-bold text-gray-400">{initialScore}%</p>
                 </div>
 
@@ -35,7 +35,7 @@ export default function PowerScoreCard({ initialScore, optimizedScore, keywordsA
 
                 {/* New Score */}
                 <div className="bg-gradient-to-br from-cevace-blue to-blue-900 rounded-lg p-6 text-center shadow-lg">
-                    <p className="text-sm text-blue-100 mb-2 font-medium">Nieuwe Score</p>
+                    <p className="text-[16px] text-blue-100 mb-2 font-medium">Nieuwe score</p>
                     <p className="text-4xl font-bold text-white">{optimizedScore}%</p>
                 </div>
             </div>
@@ -43,8 +43,8 @@ export default function PowerScoreCard({ initialScore, optimizedScore, keywordsA
             {/* Progress Bar */}
             <div className="mb-8">
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
-                    <span>ATS Compatibiliteit</span>
-                    <span className="font-bold">{optimizedScore}%</span>
+                    <span className="font-bold text-[16px]">ATS compatibiliteit</span>
+                    <span className="font-bold text-[16px]">{optimizedScore}%</span>
                 </div>
                 <div className="h-4 bg-gray-200 rounded-full overflow-hidden relative">
                     {/* Old score (background) */}
@@ -63,36 +63,21 @@ export default function PowerScoreCard({ initialScore, optimizedScore, keywordsA
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Sollicitatiekracht */}
-                <div className="bg-white rounded-lg p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <TrendingUp className="text-gray-900" size={20} />
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500">Sollicitatiekracht</p>
-                        <p className="text-lg font-bold text-gray-900">+{improvementPercent}%</p>
-                    </div>
+                <div className="bg-white rounded-lg p-6 text-center shadow-sm flex flex-col items-center justify-center h-full">
+                    <p className="text-[16px] text-gray-500 mb-2 font-medium">Sollicitatiekracht</p>
+                    <p className="text-xl font-bold text-gray-900">+{improvementPercent}%</p>
                 </div>
 
                 {/* Keywords Toegevoegd */}
-                <div className="bg-white rounded-lg p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Key className="text-gray-900" size={20} />
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500">Keywords Toegevoegd</p>
-                        <p className="text-lg font-bold text-gray-900">{keywordsAdded.length}</p>
-                    </div>
+                <div className="bg-white rounded-lg p-6 text-center shadow-sm flex flex-col items-center justify-center h-full">
+                    <p className="text-[16px] text-gray-500 mb-2 font-medium">Keywords toegevoegd</p>
+                    <p className="text-xl font-bold text-gray-900">{keywordsAdded.length}</p>
                 </div>
 
                 {/* ATS Status */}
-                <div className="bg-white rounded-lg p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="text-gray-900" size={20} />
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500">ATS Status</p>
-                        <p className="text-lg font-bold text-cevace-orange">Optimized</p>
-                    </div>
+                <div className="bg-white rounded-lg p-6 text-center shadow-sm flex flex-col items-center justify-center h-full">
+                    <p className="text-[16px] text-gray-500 mb-2 font-medium">ATS status</p>
+                    <p className="text-xl font-bold text-cevace-orange">Optimized</p>
                 </div>
             </div>
 
@@ -100,14 +85,13 @@ export default function PowerScoreCard({ initialScore, optimizedScore, keywordsA
             {keywordsAdded.length > 0 && (
                 <div className="mt-6 bg-white rounded-lg p-4">
                     <p className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-                        <Key size={16} className="text-cevace-blue" />
-                        Toegevoegde Keywords:
+                        Toegevoegde keywords:
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {keywordsAdded.map((keyword, idx) => (
                             <span
                                 key={idx}
-                                className="bg-blue-50 text-cevace-blue px-3 py-1 rounded-full text-sm font-medium border border-blue-200"
+                                className="bg-slate-100 text-gray-900 px-3 py-1 rounded-full text-[16px] font-medium"
                             >
                                 {typeof keyword === 'string' ? keyword : JSON.stringify(keyword)}
                             </span>

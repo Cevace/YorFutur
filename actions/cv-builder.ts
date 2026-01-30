@@ -40,12 +40,16 @@ export type CVData = {
 };
 
 /**
- * Format date from ISO to year format
+ * Format date from ISO to month + year format (e.g., 'jan 2024')
  */
 function formatDate(dateString?: string | null): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.getFullYear().toString();
+    // Dutch month abbreviations
+    const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${month} ${year}`;
 }
 
 /**

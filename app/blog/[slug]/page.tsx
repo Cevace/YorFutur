@@ -2,10 +2,6 @@ import { getBlogPostBySlug, getPublishedBlogPosts } from '@/lib/blog';
 import { notFound } from 'next/navigation';
 import { Calendar, User, ArrowLeft, Clock } from 'lucide-react';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeSlug from 'rehype-slug';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import SocialShare from '@/components/blog/SocialShare';
 import Breadcrumbs from '@/components/blog/Breadcrumbs';
 import TableOfContents from '@/components/blog/TableOfContents';
@@ -30,15 +26,16 @@ function slugify(text: string): string {
         .trim();
 }
 
-// Helper: Extract headings from markdown content for TOC
+// Helper: Extract headings from HTML content for TOC
 function extractHeadings(content: string): { id: string; text: string; level: number }[] {
-    const headingRegex = /^(#{2,3})\s+(.+)$/gm;
+    // Match h2 and h3 HTML tags
+    const headingRegex = /<h([23])>(.*?)<\/h\1>/gi;
     const headings: { id: string; text: string; level: number }[] = [];
     let match;
 
     while ((match = headingRegex.exec(content)) !== null) {
-        const level = match[1].length;
-        const text = match[2].trim();
+        const level = parseInt(match[1]);
+        const text = match[2].replace(/<[^>]*>/g, '').trim(); // Strip HTML tags from heading text
         const id = slugify(text);
         headings.push({ id, text, level });
     }
@@ -53,7 +50,7 @@ export async function generateStaticParams() {
     }));
 }
 
-// ISR: Revalidate every 60 seconds for auto-updates from Keystatic
+// ISR: Revalidate every 60 seconds for auto-updates from Directus
 export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -199,14 +196,10 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                     )}
 
                     {/* Content */}
-                    <div className="max-w-none">
-                        <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings]}
-                        >
-                            {post.content}
-                        </ReactMarkdown>
-                    </div>
+                    <div
+                        className="max-w-none"
+                        dangerouslySetInnerHTML={{ __html: post.content }}
+                    />
 
                     {/* Social Share */}
                     <div className="mt-8 pt-6 border-t border-gray-200">
