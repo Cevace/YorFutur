@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { AccordionTool } from '@/lib/directus';
+
 // Helper to combine classes without clsx
 function cn(...classes: (string | undefined | null | false)[]) {
     return classes.filter(Boolean).join(' ');
@@ -13,27 +14,42 @@ interface HorizontalAccordionProps {
 }
 
 export default function HorizontalAccordion({ items }: HorizontalAccordionProps) {
-    // Default to the first item's ID, or null if empty
-    const [activeId, setActiveId] = useState<string | number | undefined>(items[0]?.id);
+    // STATE MANAGEMENT CRITIQUE:
+    // 1. Initializing state with props (items[0]?.id) is dangerous if items are empty initially (SSR mismatch).
+    // 2. We need to handle the case where `items` changes (Directus fetch resolves).
+    // 3. IDs might be strings from one source and numbers from another. We force string comparison.
 
-    // Ensure we have an active item if items exist but activeId is lost
+    const [activeId, setActiveId] = useState<string | number | null>(null);
+
+    // Sync state with props: Always default to the first item if no activeId is set, or if the current activeId is no longer valid.
     React.useEffect(() => {
-        if (items.length > 0 && activeId === undefined) {
+        if (!items || items.length === 0) return;
+
+        // If no active ID, or the current active ID is not in the new list, reset to first.
+        const currentIdExists = items.some(item => String(item.id) === String(activeId));
+
+        if (!activeId || !currentIdExists) {
             setActiveId(items[0].id);
         }
     }, [items, activeId]);
 
+    // Safety check: If no items, render nothing (or a skeleton if users prefer, but "invisible" is worse than "gone").
     if (!items || items.length === 0) {
         return null;
     }
 
     return (
         <section className="py-24 bg-[#F2E9E4] overflow-hidden" id="tools-accordion">
+            {/* 
+               LAYOUT CRITIQUE:
+               1. h-[600px] is rigid. On mobile, this might be too tall or too short. 
+               2. Flexbox children need `min-w-0` to allow shrinking properly in a flex container.
+            */}
             <div className="max-w-7xl mx-auto px-6 h-[600px] flex flex-col md:flex-row gap-4">
                 {items.map((item) => {
-                    // Loose comparison to handle string/number mismatches from Directus
-                    // eslint-disable-next-line eqeqeq
-                    const isActive = activeId == item.id;
+                    // Type Safety: Convert both to string for robust comparison.
+                    // Handles "1" vs 1 equality issues mercilessly.
+                    const isActive = String(activeId) === String(item.id);
 
                     return (
                         <div
@@ -41,7 +57,9 @@ export default function HorizontalAccordion({ items }: HorizontalAccordionProps)
                             onClick={() => setActiveId(item.id)}
                             className={cn(
                                 "relative rounded-[20px] overflow-hidden cursor-pointer transition-all duration-700 ease-in-out border border-[#C9ADA7]/20",
-                                isActive ? "flex-[5] opacity-100" : "flex-[1] opacity-80 hover:opacity-100 bg-white"
+                                // LAYOUT FIX: `min-w-0` prevents flex item from refusing to shrink.
+                                // `flex-grow` logic: Active takes 5x space, inactive takes 1x.
+                                isActive ? "grow-[5] min-w-0 opacity-100" : "grow min-w-0 opacity-80 hover:opacity-100 bg-white"
                             )}
                         >
                             {/* Background Image (Active Only) */}
@@ -61,7 +79,7 @@ export default function HorizontalAccordion({ items }: HorizontalAccordionProps)
                             <div
                                 className={cn(
                                     "absolute inset-0 flex items-center justify-center transition-opacity duration-500",
-                                    isActive ? "opacity-0 pointer-events-none" : "opacity-100"
+                                    isActive ? "opacity-0 pointer-events-none" : "opacity-100 delay-200"
                                 )}
                             >
                                 <div className="flex flex-col items-center gap-4 p-4 h-full justify-center">
@@ -72,11 +90,11 @@ export default function HorizontalAccordion({ items }: HorizontalAccordionProps)
 
                                     {/* Vertical Text using standard CSS */}
                                     <h3
-                                        className="text-[#22223B] font-bold text-xl uppercase tracking-widest text-center"
+                                        className="text-[#22223B] font-bold text-xl uppercase tracking-widest text-center whitespace-nowrap"
                                         style={{
                                             writingMode: 'vertical-rl',
                                             textOrientation: 'mixed',
-                                            transform: 'rotate(180deg)' // Rotate so it reads bottom-to-top which is common, or remove for top-to-bottom
+                                            transform: 'rotate(180deg)'
                                         }}
                                     >
                                         {item.title}
@@ -121,6 +139,3 @@ export default function HorizontalAccordion({ items }: HorizontalAccordionProps)
         </section>
     );
 }
-
-// Helper for clsx if not installed, but it usually is in modern stacks. 
-// If it breaks, I'll replace it. The usage above is simple enough that a simple join works too, but clsx handles booleans nicely.
