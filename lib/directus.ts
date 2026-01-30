@@ -345,7 +345,11 @@ export async function getAccordionTools(): Promise<AccordionTool[]> {
         sort: number;
     }>>('homepage_tools?sort=sort');
 
-    if (!data || data.length === 0) return mockData;
+    // FORCE MOCK DATA if empty OR failed
+    if (!data || data.length === 0) {
+        console.log('Using Mock Data for Accordion Tools');
+        return mockData;
+    }
 
     return data.map(t => ({
         id: t.id,

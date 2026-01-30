@@ -35,11 +35,17 @@ export default function HorizontalAccordion({ items }: HorizontalAccordionProps)
 
     // Safety check: If no items, render nothing (or a skeleton if users prefer, but "invisible" is worse than "gone").
     if (!items || items.length === 0) {
-        return null;
+        return <div className="p-10 border-4 border-red-500 text-red-500 font-bold text-center bg-white">DEBUG: Component received NO items.</div>;
     }
 
     return (
-        <section className="py-24 bg-[#F2E9E4] overflow-hidden" id="tools-accordion">
+        <section className="py-24 bg-[#F2E9E4] overflow-hidden border-4 border-red-600 relative" id="tools-accordion">
+            <div className="absolute top-0 left-0 bg-red-600 text-white font-mono text-xs p-2 z-50">
+                DEBUG MODE<br />
+                Items: {items.length}<br />
+                Active ID: {activeId} (type: {typeof activeId})<br />
+                First Item ID: {items[0]?.id} (type: {typeof items[0]?.id})
+            </div>
             {/* 
                LAYOUT CRITIQUE:
                1. h-[600px] is rigid. On mobile, this might be too tall or too short. 
