@@ -427,11 +427,27 @@ export async function getHomepageLayout(): Promise<SectionConfig[]> {
 
     try {
         const sections = JSON.parse(data.sections);
-        return sections.map((s: { type: string; enabled: boolean; sectionTitle?: string }) => ({
+        const mappedSections = sections.map((s: { type: string; enabled: boolean; sectionTitle?: string }) => ({
             type: s.type,
             enabled: s.enabled,
             sectionTitle: s.sectionTitle || '',
         }));
+
+        // CRITICAL FIX: Ensure accordion is present (it was missing from CMS data)
+        const hasAccordion = mappedSections.some((s: SectionConfig) => s.type === 'accordion');
+        if (!hasAccordion) {
+            // Insert after features, or at index 2
+            const featuresIndex = mappedSections.findIndex((s: SectionConfig) => s.type === 'features');
+            const insertIndex = featuresIndex >= 0 ? featuresIndex + 1 : 2;
+
+            mappedSections.splice(insertIndex, 0, {
+                type: 'accordion',
+                enabled: true,
+                sectionTitle: 'Explore tools'
+            });
+        }
+
+        return mappedSections;
     } catch {
         return defaults;
     }
