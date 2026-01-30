@@ -5,8 +5,16 @@ import { ArrowRight } from 'lucide-react';
 import { AccordionTool } from '@/lib/directus';
 
 // Helper to combine classes without clsx
+// Helper to combine classes without clsx
 function cn(...classes: (string | undefined | null | false)[]) {
     return classes.filter(Boolean).join(' ');
+}
+
+// Helper for pure sentence case (first letter upper, rest lower)
+function toSentenceCase(str: string) {
+    if (!str) return '';
+    const lower = str.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
 interface HorizontalAccordionProps {
@@ -14,38 +22,30 @@ interface HorizontalAccordionProps {
 }
 
 export default function HorizontalAccordion({ items }: HorizontalAccordionProps) {
-    // STATE MANAGEMENT CRITIQUE:
-    // 1. Initializing state with props (items[0]?.id) is dangerous if items are empty initially (SSR mismatch).
-    // 2. We need to handle the case where `items` changes (Directus fetch resolves).
-    // 3. IDs might be strings from one source and numbers from another. We force string comparison.
-
     const [activeId, setActiveId] = useState<string | number | null>(null);
 
-    // Sync state with props: Always default to the first item if no activeId is set, or if the current activeId is no longer valid.
+    // Sync state with props
     React.useEffect(() => {
         if (!items || items.length === 0) return;
-
-        // If no active ID, or the current active ID is not in the new list, reset to first.
         const currentIdExists = items.some(item => String(item.id) === String(activeId));
-
         if (!activeId || !currentIdExists) {
             setActiveId(items[0].id);
         }
     }, [items, activeId]);
 
-    // Safety check: If no items, render nothing (or a skeleton if users prefer, but "invisible" is worse than "gone").
-    // Safety check: If no items, render nothing (or a skeleton if users prefer, but "invisible" is worse than "gone").
     if (!items || items.length === 0) {
         return null;
     }
 
     return (
         <section className="py-24 bg-[#F2E9E4] overflow-hidden" id="tools-accordion">
-            <div className="max-w-7xl mx-auto px-6 h-[600px] flex flex-col md:flex-row gap-4">
+            <div className="max-w-7xl mx-auto px-6 h-[450px] flex flex-col md:flex-row gap-4">
                 {items.map((item) => {
-                    // Type Safety: Convert both to string for robust comparison.
-                    // Handles "1" vs 1 equality issues mercilessly.
                     const isActive = String(activeId) === String(item.id);
+
+                    // Title formatting for inactive state: Sentence case -> split by words
+                    const titleSentence = toSentenceCase(item.title);
+                    const titleWords = titleSentence.split(' ');
 
                     return (
                         <div
@@ -53,48 +53,45 @@ export default function HorizontalAccordion({ items }: HorizontalAccordionProps)
                             onClick={() => setActiveId(item.id)}
                             className={cn(
                                 "relative rounded-[20px] overflow-hidden cursor-pointer transition-all duration-700 ease-in-out border border-[#C9ADA7]/20",
-                                // LAYOUT FIX: `min-w-0` prevents flex item from refusing to shrink.
-                                // `flex-grow` logic: Active takes 5x space, inactive takes 1x.
-                                isActive ? "grow-[5] min-w-0 opacity-100" : "grow min-w-0 opacity-80 hover:opacity-100 bg-white"
+                                "shadow-sm hover:shadow-2xl",
+                                // LAYOUT TWEAK: Reduce grow from 5 to 3 to make inactive items relatively wider (20% logic)
+                                isActive ? "grow-[3] min-w-0 opacity-100" : "grow min-w-0 opacity-80 hover:opacity-100 bg-white"
                             )}
                         >
-                            {/* Background Image (Active Only) */}
+                            {/* Background Image (Always Visible now) */}
                             <div
                                 className={cn(
                                     "absolute inset-0 bg-cover bg-center transition-opacity duration-700 bg-slate-800",
-                                    isActive ? "opacity-100" : "opacity-0"
+                                    // User Request: Show images even when closed
+                                    "opacity-100"
                                 )}
                                 style={{
                                     backgroundImage: item.background_image ? `url(${item.background_image})` : undefined
                                 }}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                                <div className={cn(
+                                    "absolute inset-0 bg-gradient-to-t transition-all duration-700",
+                                    // Darker overlay for inactive to ensure text pop, standard for active
+                                    isActive ? "from-black/90 via-black/40 to-transparent" : "from-black/80 via-black/20 to-transparent"
+                                )}></div>
                             </div>
 
-                            {/* Inactive Content - Vertical Text */}
+                            {/* Inactive Content - Stacked Words, Bottom Left Aligned */}
                             <div
                                 className={cn(
-                                    "absolute inset-0 flex items-center justify-center transition-opacity duration-500",
+                                    "absolute inset-0 flex transition-opacity duration-500",
+                                    // Align bottom (justify-end) and left (items-start) to match active button
+                                    "flex-col justify-end items-start p-8 md:p-12",
                                     isActive ? "opacity-0 pointer-events-none" : "opacity-100 delay-200"
                                 )}
                             >
-                                <div className="flex flex-col items-center gap-4 p-4 h-full justify-center">
-                                    {/* Icon */}
-                                    <div className="w-10 h-10 rounded-full bg-[#F97316]/10 flex items-center justify-center text-[#F97316] shrink-0">
-                                        <i className={cn(item.icon_class || "fa-solid fa-star")}></i>
-                                    </div>
-
-                                    {/* Vertical Text using standard CSS */}
-                                    <h3
-                                        className="text-[#22223B] font-bold text-xl uppercase tracking-widest text-center whitespace-nowrap"
-                                        style={{
-                                            writingMode: 'vertical-rl',
-                                            textOrientation: 'mixed',
-                                            transform: 'rotate(180deg)'
-                                        }}
-                                    >
-                                        {item.title}
-                                    </h3>
+                                <div className="flex flex-col items-start gap-1">
+                                    {/* Words stacked vertically */}
+                                    {titleWords.map((word, i) => (
+                                        <span key={i} className="text-white font-bold text-lg leading-tight drop-shadow-md">
+                                            {word}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
 
@@ -121,9 +118,10 @@ export default function HorizontalAccordion({ items }: HorizontalAccordionProps)
                                     {item.button_text && (
                                         <a
                                             href={item.button_url || '#'}
-                                            className="inline-flex items-center gap-2 mt-6 px-8 py-4 bg-[#F97316] hover:bg-orange-600 text-white rounded-full font-bold uppercase tracking-wider transition-all hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transform hover:-translate-y-1 w-fit"
+                                            className="inline-flex items-center gap-2 mt-6 px-8 py-4 bg-[#F97316] hover:bg-orange-600 text-white rounded-full font-bold transition-all hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transform hover:-translate-y-1 w-fit text-[16px]"
                                         >
-                                            {item.button_text} <ArrowRight size={18} />
+                                            {/* Button text: Sentence case */}
+                                            {toSentenceCase(item.button_text)} <ArrowRight size={18} />
                                         </a>
                                     )}
                                 </div>
